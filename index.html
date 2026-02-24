@@ -1,0 +1,1610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Trailhead Arena — Salesforce Platformer</title>
+<style>
+/* =====================================================================
+   GLOBAL STYLES — Salesforce brand: Navy #032d60, Blue #0176d3, Orange #f36b25
+   ===================================================================== */
+:root{
+  --blue:#0176d3;--blue-lt:#3aa0ff;--navy:#032d60;--navy-mid:#0b5cab;
+  --orange:#f36b25;--orange-lt:#ffb75d;--green:#2e844a;--purple:#7b44c7;
+  --gold:#fcc003;--muted:#556676;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif;}
+body{background:#0a0f1e;overflow-x:hidden;}
+
+/* ── SPLASH SCREEN ─────────────────────────────────────────────── */
+#splash{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#0b2a55 0%,#020c1e 70%);overflow:hidden;}
+#splashBg{position:absolute;inset:0;pointer-events:none;}
+.sp-inner{position:relative;z-index:2;text-align:center;color:#fff;padding:20px;max-width:680px;}
+.sp-logo{width:100px;height:100px;margin:0 auto 18px;border-radius:50%;background:conic-gradient(from 0deg,#f36b25,#0176d3,#4ade80,#f36b25);display:flex;align-items:center;justify-content:center;animation:spinRing 5s linear infinite;box-shadow:0 0 0 4px rgba(255,255,255,.08),0 0 50px rgba(1,118,211,.5);}
+.sp-logo-inner{width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#0b3b7a,#020c1e);display:flex;align-items:center;justify-content:center;font-size:44px;}
+@keyframes spinRing{to{transform:rotate(360deg);}}
+.sp-eye{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#ffb75d;margin-bottom:8px;opacity:0;animation:upFade .6s .1s forwards;}
+.sp-title{font-size:clamp(38px,7vw,72px);font-weight:900;line-height:.95;letter-spacing:-2px;margin-bottom:8px;opacity:0;animation:upFade .6s .25s forwards;}
+.sp-title em{color:#f36b25;font-style:normal;}
+.sp-tagline{font-size:15px;color:rgba(255,255,255,.65);margin-bottom:32px;opacity:0;animation:upFade .6s .4s forwards;}
+.sp-cards{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:36px;opacity:0;animation:upFade .6s .55s forwards;}
+.sp-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;min-width:90px;backdrop-filter:blur(8px);transition:transform .2s;}
+.sp-card:hover{transform:translateY(-3px);}
+.sp-card .ci{font-size:24px;display:block;margin-bottom:4px;}
+.sp-card .ct{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.6);}
+.sp-cta{background:linear-gradient(135deg,#f36b25,#d94d0e);color:#fff;border:none;padding:15px 52px;border-radius:50px;font-size:17px;font-weight:800;cursor:pointer;letter-spacing:.5px;box-shadow:0 8px 30px rgba(243,107,37,.55);opacity:0;animation:upFade .6s .7s forwards,ctaGlow 2.5s ease 1.5s infinite;transition:transform .2s;}
+.sp-cta:hover{transform:scale(1.05) translateY(-2px);}
+@keyframes upFade{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+@keyframes ctaGlow{0%,100%{box-shadow:0 8px 30px rgba(243,107,37,.55);}50%{box-shadow:0 8px 55px rgba(243,107,37,.9);}}
+
+/* ── PAGE & LAYOUT ─────────────────────────────────────────────── */
+.page{background:linear-gradient(180deg,#edf6ff 0%,#f8fbff 100%);min-height:100vh;}
+.wrap{max-width:1260px;margin:0 auto;padding:16px 18px;}
+
+/* ── HEADER ────────────────────────────────────────────────────── */
+.hdr{background:linear-gradient(105deg,#021b3d 0%,#032d60 50%,#0b4fa0 100%);padding:14px 22px;border-radius:16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 8px 40px rgba(2,27,61,.5),inset 0 1px 0 rgba(255,255,255,.06);}
+.hdr-brand{display:flex;align-items:center;gap:12px;}
+.hdr-logo{width:42px;height:42px;border-radius:50%;background:conic-gradient(from 200deg,#f36b25,#e0a010,#f36b25);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 2px 14px rgba(243,107,37,.55);animation:logoSpin 9s linear infinite;}
+@keyframes logoSpin{to{transform:rotate(360deg);}}
+.hdr h1{font-size:19px;font-weight:800;color:#fff;}
+.hdr h1 .acc{color:#f36b25;} .hdr h1 .sub{color:rgba(255,255,255,.38);font-weight:400;font-size:12px;margin-left:6px;}
+.hdr-right{display:flex;gap:10px;}
+
+/* ── INFO GRID ─────────────────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-bottom:18px;}
+.card{background:#fff;padding:20px;border-radius:16px;box-shadow:0 4px 24px rgba(2,30,66,.07);}
+.card h2{font-size:17px;font-weight:800;color:var(--navy);margin-bottom:6px;}
+.card p{font-size:13px;color:var(--muted);line-height:1.6;}
+.stage-pills{display:flex;gap:8px;margin-top:14px;}
+.stage-pill{flex:1;padding:10px 6px;border-radius:10px;text-align:center;font-size:12px;font-weight:700;border-top:3px solid var(--blue);}
+.stage-pill.s1{background:#f0f7ff;border-top-color:#0176d3;} .stage-pill.s2{background:#f5f0ff;border-top-color:#7b44c7;} .stage-pill.s3{background:#f0fff6;border-top-color:#2e844a;}
+.stage-pill .sn{color:var(--muted);font-size:11px;font-weight:400;}
+.player-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.player-name{font-size:16px;font-weight:800;color:var(--navy);}
+.coin-hud{background:linear-gradient(135deg,#1a0e00,#3a1e00);padding:7px 16px;border-radius:50px;font-weight:800;color:#fcc003;font-size:15px;border:1px solid rgba(255,200,0,.25);transition:transform .25s cubic-bezier(.175,.885,.32,1.275),box-shadow .25s;display:flex;align-items:center;gap:6px;}
+.coin-hud.pop{transform:scale(1.18);box-shadow:0 6px 24px rgba(255,180,0,.55);}
+.prog-wrap{height:10px;background:#e0efff;border-radius:50px;overflow:hidden;margin-bottom:14px;}
+.prog-bar{height:100%;background:linear-gradient(90deg,#0176d3,#3aa0ff);border-radius:50px;transition:width .4s ease;}
+.stat-mini{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px;}
+.stat-mini strong{color:var(--blue);font-weight:700;}
+.game-btns{display:flex;gap:8px;margin-top:12px;}
+.lbl{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:5px;}
+input[type=text]{padding:9px 13px;border-radius:9px;border:1.5px solid #c9e3f8;font-size:14px;outline:none;background:#fff;transition:border-color .2s;width:100%;}
+input[type=text]:focus{border-color:var(--blue);}
+.setup-row{display:flex;gap:10px;align-items:flex-end;margin-top:14px;flex-wrap:wrap;}
+.setup-row>*{flex:1;min-width:140px;}
+
+/* ── BUTTONS ───────────────────────────────────────────────────── */
+.btn{background:var(--blue);color:#fff;padding:9px 16px;border-radius:9px;border:none;cursor:pointer;font-weight:700;font-size:13px;transition:all .18s;box-shadow:0 3px 10px rgba(1,118,211,.22);}
+.btn:hover{background:#015ab0;transform:translateY(-1px);}
+.btn-dk{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);box-shadow:none;font-size:12px;}
+.btn-dk:hover{background:rgba(255,255,255,.18);}
+.btn-or{background:linear-gradient(135deg,#f36b25,#d94d0e);box-shadow:0 4px 14px rgba(243,107,37,.38);}
+.btn-or:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(243,107,37,.5);}
+.btn-sm{padding:7px 14px;font-size:12px;}
+
+/* ── GAME CONSOLE ──────────────────────────────────────────────── */
+.console-wrap{display:flex;gap:18px;align-items:flex-start;}
+.console{flex:1;background:#060d1c;border-radius:20px;padding:14px;box-shadow:0 24px 80px rgba(2,8,22,.6),inset 0 1px 0 rgba(255,255,255,.04);}
+.game-hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;flex-wrap:wrap;}
+.hud-badge{background:rgba(255,255,255,.06);padding:7px 13px;border-radius:50px;font-size:12px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:6px;}
+
+/* JETPACK HUD — prominent fuel gauge with % readout */
+#jetHUD{display:none;align-items:center;gap:8px;background:rgba(243,107,37,.15);border:1px solid rgba(243,107,37,.4);padding:7px 14px;border-radius:50px;color:#ffb75d;}
+#jetHUD.on{display:flex;}
+.fuel-col{display:flex;flex-direction:column;gap:2px;}
+.fuel-bar{width:90px;height:10px;background:rgba(0,0,0,.5);border-radius:5px;overflow:hidden;border:1px solid rgba(255,255,255,.12);}
+.fuel-fill{height:100%;background:linear-gradient(90deg,#ff3300,#f36b25,#ffd700);border-radius:5px;transition:width .08s linear;box-shadow:0 0 8px rgba(255,150,0,.6);}
+.fuel-pct-txt{font-size:9px;font-weight:800;color:rgba(255,200,100,.8);text-align:right;letter-spacing:.3px;}
+
+/* Castle unlock indicator */
+#castleHint{display:none;padding:5px 12px;border-radius:8px;background:rgba(243,107,37,.15);border:1px solid rgba(243,107,37,.4);color:#f36b25;font-size:11px;font-weight:700;animation:blink 1.2s ease infinite;}
+#castleHint.on{display:block;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.5;}}
+.ctrl-hint{background:rgba(255,255,255,.05);padding:5px 10px;border-radius:7px;color:rgba(255,255,255,.5);font-size:10px;border:1px solid rgba(255,255,255,.07);}
+.canvas-wrap{border-radius:12px;overflow:hidden;}
+canvas#game{width:100%;height:520px;display:block;}
+
+/* ── SIDEBAR ───────────────────────────────────────────────────── */
+.sidebar{width:270px;display:flex;flex-direction:column;gap:14px;}
+.how-card{background:linear-gradient(140deg,#021840,#042f72);color:#fff;border-radius:16px;padding:18px;}
+.how-card h4{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:10px;}
+.how-card li{font-size:12px;line-height:1.9;color:rgba(255,255,255,.8);list-style:none;}
+
+/* ── MODALS ─────────────────────────────────────────────────────── */
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(1,5,18,.78);z-index:100;backdrop-filter:blur(8px);}
+.modal-box{width:560px;max-width:93%;background:#fff;border-radius:22px;padding:28px;box-shadow:0 32px 100px rgba(0,0,0,.35);overflow:hidden;}
+.quiz-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+.quiz-q{font-size:18px;font-weight:800;color:var(--navy);margin:10px 0 2px;line-height:1.35;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.opt{padding:13px;border-radius:10px;border:2px solid #e8f2ff;background:linear-gradient(180deg,#fff,#f5f9ff);cursor:pointer;font-weight:600;font-size:13.5px;color:var(--navy);transition:all .18s;}
+.opt:hover{border-color:var(--blue-lt);transform:translateY(-2px);box-shadow:0 5px 14px rgba(0,0,0,.07);}
+.opt.ok{background:linear-gradient(135deg,#e6ffed,#ccf5d8);border-color:var(--green);color:#0d4a22;pointer-events:none;}
+.opt.no{background:linear-gradient(135deg,#ffeaea,#ffcccc);border-color:#e05555;color:#7a1e1e;}
+.hint-txt{margin-top:10px;font-size:13px;font-weight:600;min-height:18px;text-align:center;}
+.modal-footer{display:flex;justify-content:flex-end;margin-top:18px;}
+/* Stage transition — dark themed overlay */
+#modalStage .modal-box{background:linear-gradient(145deg,#010e22,#032d60,#0a5198);color:#fff;text-align:center;padding:52px 36px;}
+.tr-icon{font-size:60px;margin-bottom:14px;display:block;animation:pop .5s cubic-bezier(.175,.885,.32,1.275);}
+.tr-title{font-size:clamp(20px,4vw,32px);font-weight:900;color:#f36b25;margin-bottom:8px;}
+.tr-desc{font-size:14px;color:rgba(255,255,255,.65);}
+.tr-tip{font-size:12px;color:rgba(255,255,255,.4);margin-top:14px;}
+@keyframes pop{from{transform:scale(.4);}to{transform:scale(1);}}
+#modalOver .modal-box{text-align:center;padding:40px 28px;}
+.over-icon{font-size:54px;margin-bottom:10px;}
+.over-title{font-size:26px;font-weight:900;color:#e03a3a;margin-bottom:6px;}
+.over-msg{font-size:14px;color:var(--muted);margin-bottom:22px;}
+#modalWin .modal-box{position:relative;overflow:hidden;}
+#confettiC{position:absolute;inset:0;pointer-events:none;}
+.win-inner{position:relative;z-index:1;text-align:center;}
+.win-badge{width:96px;height:96px;margin:0 auto 14px;border-radius:50%;background:radial-gradient(circle,#ffd700,#ff9500);display:flex;align-items:center;justify-content:center;font-size:46px;transform:scale(0);animation:pop .5s .1s cubic-bezier(.175,.885,.32,1.275) forwards,glow2 2s infinite .6s;}
+@keyframes glow2{0%,100%{box-shadow:0 0 0 0 rgba(255,165,0,.6);}70%{box-shadow:0 0 0 20px rgba(255,165,0,0);}}
+.win-stats{display:flex;justify-content:space-around;margin:18px 0;background:rgba(0,0,0,.03);padding:14px;border-radius:12px;}
+.win-stat{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:26px;font-weight:900;color:var(--blue);}
+.win-stat span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+.lb-row{display:flex;justify-content:space-between;padding:7px 11px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid #eef5ff;background:#f7fbff;margin-bottom:5px;}
+.lb-row.gold{background:#fff9e0;border-color:#ffe575;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}.console-wrap{flex-direction:column;}.sidebar{width:100%;}canvas#game{height:380px;}}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ SPLASH SCREEN ════════════════ -->
+<div id="splash">
+  <canvas id="splashBg"></canvas>
+  <div class="sp-inner">
+    <div class="sp-logo"><div class="sp-logo-inner">🦔</div></div>
+    <div class="sp-eye">Salesforce Learning Platform</div>
+    <div class="sp-title">Trailhead<br><em>Arena</em></div>
+    <div class="sp-tagline">🎮 Platform · Jump · Answer · Earn Badges · Reach the Castle!</div>
+    <div class="sp-cards">
+      <div class="sp-card"><span class="ci">🪙</span><span class="ct">Earn Badges</span></div>
+      <div class="sp-card"><span class="ci">🚀</span><span class="ct">Jetpack Fly</span></div>
+      <div class="sp-card"><span class="ci">🏰</span><span class="ct">Castle Gate</span></div>
+      <div class="sp-card"><span class="ci">🧠</span><span class="ct">Quiz Battles</span></div>
+      <div class="sp-card"><span class="ci">💥</span><span class="ct">Explosions!</span></div>
+    </div>
+    <button class="sp-cta" id="splashBtn">▶ &nbsp;ENTER THE ARENA</button>
+  </div>
+</div>
+
+<!-- ════════════════ GAME PAGE ════════════════ -->
+<div class="page" id="gamePage" style="display:none;">
+<div class="wrap">
+  <div class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-logo">🦔</div>
+      <h1>Trailhead <span class="acc">Arena</span><span class="sub">Salesforce Gaming POC</span></h1>
+    </div>
+    <div class="hdr-right">
+      <button class="btn btn-dk" id="nightBtn">🌙 Night Mode</button>
+      <button class="btn btn-or btn-sm" id="resumeBtn" style="display:none">▶ Resume</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Sales Cloud — Trailhead Platformer</h2>
+      <p>Navigate 3 stages, answer Salesforce quizzes to earn coin badges, then walk Astro through the <strong>Trailhead Castle gate</strong> to advance!</p>
+      <div class="stage-pills">
+        <div class="stage-pill s1">Stage 1<br><span class="sn">Get to Know</span></div>
+        <div class="stage-pill s2">Stage 2<br><span class="sn">Grow Business</span></div>
+        <div class="stage-pill s3">Stage 3<br><span class="sn">Measure Metrics</span></div>
+      </div>
+      <div class="setup-row">
+        <div><label class="lbl">Trailblazer Name</label><input id="nameIn" type="text" placeholder="e.g. Astro Hero"/></div>
+        <div><label class="lbl">Custom Avatar</label><input id="avatarIn" type="file" accept="image/*" style="font-size:12px;padding:5px;"/></div>
+        <div style="flex:0"><button id="startBtn" class="btn btn-or" style="white-space:nowrap;padding:10px 22px;margin-top:18px">🎮 Start Game</button></div>
+      </div>
+      <div style="margin-top:16px;padding:14px;background:#f5f9ff;border-radius:10px;font-size:12.5px;line-height:1.9;color:var(--muted)">
+        <strong style="color:var(--navy);display:block;margin-bottom:5px">📚 Study Material</strong>
+        <b style="color:var(--blue)">Leads</b> — Potential customers before conversion &nbsp;·&nbsp;
+        <b style="color:var(--blue)">Opportunities</b> — Deals in progress &nbsp;·&nbsp;
+        <b style="color:var(--blue)">Forecasting</b> — Predict pipeline revenue &nbsp;·&nbsp;
+        <b style="color:var(--blue)">Einstein</b> — AI insights &nbsp;·&nbsp;
+        <b style="color:var(--blue)">Dashboards</b> — Visualize KPIs &nbsp;·&nbsp;
+        <b style="color:var(--blue)">Accounts</b> — Companies you work with
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="player-row">
+          <div><div class="lbl">Trailblazer</div><div class="player-name" id="pName">Hero</div></div>
+          <div id="coinHUD" class="coin-hud">🪙 <span id="coinCt">0</span></div>
+        </div>
+        <div class="lbl">Progress</div>
+        <div class="prog-wrap"><div id="progBar" class="prog-bar" style="width:0%"></div></div>
+        <div class="game-btns">
+          <button id="pauseBtn" class="btn btn-sm" style="flex:1;background:var(--navy-mid)">⏸ Pause</button>
+          <button id="restartBtn" class="btn btn-sm" style="flex:1;background:var(--navy-mid)">↺ Restart</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted)">
+          <input type="checkbox" id="sndToggle" checked> 🔊 Sound
+        </label>
+      </div>
+      <div class="card">
+        <div class="lbl" style="margin-bottom:8px">🏆 Leaderboard</div>
+        <div id="lb"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="console-wrap">
+    <div class="console">
+      <div class="game-hud">
+        <div class="hud-badge">🦔 <span id="hudName">Trailblazer</span></div>
+        <div id="castleHint">🏰 Castle unlocked — walk through the gate!</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <!-- JETPACK FUEL HUD — visible when jetpack is collected -->
+          <div id="jetHUD">
+            <span style="font-size:16px">🚀</span>
+            <div class="fuel-col">
+              <div class="fuel-bar"><div id="fuelFill" class="fuel-fill" style="width:100%"></div></div>
+              <div class="fuel-pct-txt"><span id="fuelPct">100</span>% FUEL</div>
+            </div>
+          </div>
+          <div class="ctrl-hint">← → Move &nbsp;|&nbsp; Space Jump &nbsp;|&nbsp; W / ↑ Jetpack</div>
+        </div>
+      </div>
+      <div class="canvas-wrap"><canvas id="game"></canvas></div>
+    </div>
+    <div class="sidebar">
+      <div class="card">
+        <h3 style="font-size:14px;color:var(--navy);margin-bottom:4px" id="stageTitle">Stage 1</h3>
+        <p id="stageDesc" style="font-size:12px;color:var(--muted)"></p>
+        <div style="margin-top:10px">
+          <div class="stat-mini">Coins <strong id="sCoin">0</strong></div>
+          <div class="stat-mini">Accuracy <strong id="sAcc">0%</strong></div>
+          <div class="stat-mini">Stage <strong id="sStg">1/3</strong></div>
+          <div class="stat-mini">Challenges <strong id="sChall">0/3</strong></div>
+        </div>
+      </div>
+      <div class="how-card">
+        <h4>🎮 How to Play</h4>
+        <ul>
+          <li>🟡 Touch glowing orbs → quiz!</li>
+          <li>✅ Correct answer = 🪙 coins</li>
+          <li>🚀 Jetpack: W / ↑ to fly!</li>
+          <li>☁ Can't fly off top of screen</li>
+          <li>💥 Explosive fireworks entering castle!</li>
+          <li>🏰 Walk through gate to advance stage</li>
+          <li>🌙 Night mode persists between quizzes</li>
+          <li>🎬 Stage banner shows on game start</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════ QUIZ MODAL ════════ -->
+<div id="modalQuiz" class="modal">
+  <div class="modal-box">
+    <div class="quiz-title" id="qTitle">Challenge</div>
+    <div class="quiz-q" id="qText"></div>
+    <div id="qOpts" class="opts"></div>
+    <div id="qHint" class="hint-txt"></div>
+    <div class="modal-footer"><button id="closeQuiz" class="btn" style="background:var(--navy-mid)">Close</button></div>
+  </div>
+</div>
+
+<!-- ════════ STAGE TRANSITION (overlay, used only for resume) ════════ -->
+<div id="modalStage" class="modal" style="z-index:200">
+  <div class="modal-box">
+    <span id="trIcon" class="tr-icon">🌤️</span>
+    <div id="trTitle" class="tr-title">Stage 1</div>
+    <div id="trDesc" class="tr-desc"></div>
+    <div id="trTip" class="tr-tip"></div>
+  </div>
+</div>
+
+<!-- ════════ GAME OVER ════════ -->
+<div id="modalOver" class="modal">
+  <div class="modal-box">
+    <div class="over-icon">💀</div>
+    <div class="over-title">You Fell!</div>
+    <div id="overMsg" class="over-msg">Restart near your last checkpoint.</div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button id="retryBtn" class="btn btn-or">↺ Try Again</button>
+      <button id="quitBtn" class="btn" style="background:var(--navy-mid)">✕ Quit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ VICTORY ════════ -->
+<div id="modalWin" class="modal">
+  <div class="modal-box">
+    <canvas id="confettiC"></canvas>
+    <div class="win-inner">
+      <div class="win-badge">🏆</div>
+      <h2 style="font-size:26px;color:var(--navy)">Salesforce Champion!</h2>
+      <p style="color:var(--muted);font-size:14px;margin-top:5px">All 3 stages conquered!</p>
+      <div class="win-stats">
+        <div class="win-stat"><span id="wCoins">0</span><span>Coins</span></div>
+        <div class="win-stat"><span id="wAcc">0%</span><span>Accuracy</span></div>
+      </div>
+      <button id="doneBtn" class="btn btn-or" style="width:100%;padding:13px;font-size:15px">🎉 Complete Module</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   TRAILHEAD ARENA v4.3 — Full Canvas Platformer Engine
+   
+   BUGS FIXED IN THIS VERSION:
+   ─────────────────────────────
+   [FIX 1] Jetpack WORKS: JP_THRUST applied BEFORE gravity each frame.
+           Net acceleration = JP_THRUST(-2.6) + G(1.0) = -1.6 upward.
+           vy is also hard-clamped to JP_MAX_VY so player can't rocket away.
+   
+   [FIX 2] Player can't fly off-screen: After Y integration, y is clamped
+           to a minimum of 5px from canvas top. vy reset to 0 on ceiling hit.
+   
+   [FIX 3] Night mode NEVER reset by quiz/audio:
+           doQuiz() saves Game.night BEFORE opening modal, restores it AFTER.
+           Audio startAmb() reads Game.night read-only — never writes it.
+   
+   [FIX 4] No first-jump quiz popup: player.quizCD=120 set on spawnOn().
+           Orb collision is skipped while quizCD > 0.
+   
+   [FIX 5] Stage banner on canvas (not modal): Banner object draws animated
+           text directly on the game canvas for 3 seconds, game runs normally.
+   
+   [FIX 6] Castle explosion: Castle.triggerExplosion() fires 3 layers of
+           particles (sparks, glowing orbs, rising embers) on player entry.
+   
+   [FIX 7] Fuel bar: Prominent HUD bar with %, colour gradient, glow effect.
+   ===================================================================== */
+
+/* ── PHYSICS CONSTANTS ──────────────────────────────────────────── */
+const G         = 1.0;    // Gravity per frame (px/frame²)
+const FALL_M    = 1.6;    // Extra gravity multiplier when falling
+const JUMP_M    = 1.35;   // Short-hop: release Space early = lower jump
+const MAX_SPD   = 7.8;    // Max horizontal speed
+const ACCEL     = 1.35;   // Horizontal acceleration
+const FRIC      = 0.78;   // Ground friction coefficient
+const AIR_FRIC  = 0.93;   // Air drag coefficient
+const JUMP_VEL  = -19.5;  // Jump initial velocity (negative = upward)
+const COYOTE    = 12;     // Coyote-time frames (jump grace after walking off edge)
+const JBUF      = 12;     // Jump-buffer frames (pre-landing jump registered)
+const TERM_V    = 28;     // Terminal fall velocity
+
+/* ── JETPACK CONSTANTS ──────────────────────────────────────────── */
+// [FIX 1] JP_THRUST must be larger magnitude than G so player rises.
+// Each frame: vy += JP_THRUST, then vy += G (gravity).
+// Net: JP_THRUST + G = -2.6 + 1.0 = -1.6 → player accelerates upward.
+const JP_THRUST  = -2.6;  // Upward thrust (negative = up). Overcomes gravity.
+const JP_MAX_VY  = -10;   // Fastest the player can rise with jetpack
+const JP_MAX     = 300;   // Max fuel units
+const JP_DRAIN   = 1.5;   // Fuel used per frame while active
+
+/* ── STAGE COLOUR THEMES ────────────────────────────────────────── */
+const SC = [
+  { top:'#0b5cab',bot:'#042e65',edge:'#3aa0ff',snow:'#cce5ff',glow:'rgba(58,160,255,.6)',sky0:'#aad4f5',sky1:'#d4eeff' },
+  { top:'#6020a0',bot:'#3c1070',edge:'#b060f0',snow:'#e0d0ff',glow:'rgba(176,96,240,.6)',sky0:'#c8b0ef',sky1:'#e8d8ff' },
+  { top:'#186830',bot:'#0c3e1a',edge:'#40d870',snow:'#c0ffd0',glow:'rgba(64,216,112,.6)',sky0:'#a8e8b8',sky1:'#d0f8e0' }
+];
+
+/* ── STAGE DEFINITIONS ──────────────────────────────────────────── */
+const STAGES = [
+  {
+    n:1,title:'Get to Know Sales Cloud',desc:'Clouds & floating platforms — learn the basics.',
+    icon:'🌤️',tip:'Touch the glowing orbs to start a quiz challenge!',
+    plats:[[80,445,210,18],[350,375,170,18],[610,310,160,18],[920,355,185,18],[1230,315,185,18],[1580,395,170,18]],
+    moving:[{x:475,y:290,w:130,h:18,vx:1.8}],
+    cxs:[585,965,1410],castleX:1790,jpPlat:2,
+    qs:[
+      {q:'Primary purpose of Sales Cloud?',o:['Manage HR records','Automate sales processes','Host marketing emails','Manage IT tickets'],c:1,h:'Supports sales pipeline & automation.'},
+      {q:'Which object tracks potential customers?',o:['Cases','Opportunities','Leads','Assets'],c:2,h:'First contact before conversion.'},
+      {q:'Sales forecasting helps teams to:',o:['Track servers','Predict revenue','Manage payroll','Host emails'],c:1,h:'Used for revenue predictions.'},
+      {q:'What does an Account represent?',o:['A user login','A company you work with','An email campaign','A ticket'],c:1,h:'B2B entities are stored here.'},
+      {q:'What is a Contact?',o:['Individual at an Account','A phone record','A server endpoint','A transaction'],c:0,h:'The people you talk to.'},
+      {q:'Tasks and Events are part of:',o:['Einstein Analytics','Activities','Chatter','Heroku'],c:1,h:"Things you 'do' — calls, meetings."}
+    ]
+  },
+  {
+    n:2,title:'Grow Your Business',desc:'Moving platforms & jetpacks — step it up.',
+    icon:'⚡',tip:'Grab the 🚀 jetpack powerup — hold W or ↑ Arrow to fly!',
+    plats:[[80,450,180,18],[355,380,165,18],[710,310,165,18],[1070,360,180,18],[1390,305,170,18],[1710,390,195,18]],
+    moving:[{x:540,y:280,w:135,h:18,vx:2.0},{x:1010,y:265,w:125,h:18,vx:-1.7}],
+    cxs:[500,895,1490],castleX:1920,jpPlat:3,
+    qs:[
+      {q:'Which feature tracks customer interactions?',o:['Activity Timeline','Server Monitor','Payroll','Email Host'],c:0,h:'A timeline of calls/emails.'},
+      {q:'Opportunities represent:',o:['Potential revenue / Deals','Employees','Hardware','Support cases'],c:0,h:'Deals in the pipeline.'},
+      {q:'Einstein in Sales Cloud provides:',o:['AI-driven insights','Email hosting','Server logs','Payroll'],c:0,h:'Predictive scoring and recommendations.'},
+      {q:'What is a Campaign used for?',o:['Track IT assets','Marketing initiatives','Reset passwords','Delete records'],c:1,h:'Marketing efforts to generate leads.'},
+      {q:'Products & Price Books relate to:',o:['What you sell & pricing','Salaries','Office supplies','Licenses'],c:0,h:'Items on an Opportunity.'},
+      {q:'Quotes are generated from:',o:['Leads','Opportunities','Cases','Campaigns'],c:1,h:'You propose pricing during a deal.'}
+    ]
+  },
+  {
+    n:3,title:'Measure Metrics That Matter',desc:'High platforms & verticality — analytics mastery.',
+    icon:'❄️',tip:'Snow season! Grab the jetpack — platforms are very high!',
+    plats:[[80,460,170,18],[360,380,160,18],[695,295,165,18],[1065,225,185,18],[1410,260,180,18],[1780,330,200,18]],
+    moving:[{x:585,y:255,w:140,h:18,vx:1.4},{x:1215,y:200,w:130,h:18,vx:-1.6}],
+    cxs:[650,1110,1560],castleX:2010,jpPlat:2,
+    qs:[
+      {q:'Dashboards are used to:',o:['Visualize key metrics','Host websites','Run servers','Manage payroll'],c:0,h:'Visual representation of reports.'},
+      {q:'Reports help you to:',o:['Analyze and filter data','Send mass email','Store files','Host servers'],c:0,h:'Tabular, summary, or matrix data.'},
+      {q:'KPI stands for:',o:['Key Performance Indicator','Kernel Process Input','Known Platform Instance','Key Platform Integration'],c:0,h:'Measures of performance.'},
+      {q:'A dashboard component is powered by:',o:['A single report','A workflow rule','An apex trigger','A permission set'],c:0,h:'The underlying data source.'},
+      {q:'Custom Report Types dictate:',o:['Objects/fields available','UI colors','Password policies','Email templates'],c:0,h:"Defines the report 'framework'."},
+      {q:'Dashboard refresh rates:',o:['Always real-time','Triggered manually or scheduled','Every millisecond','Cannot be changed'],c:1,h:'Data is queried on demand.'}
+    ]
+  }
+];
+
+/* ── PERSISTENCE ────────────────────────────────────────────────── */
+const DB = {
+  save(s){try{localStorage.setItem('tha43',JSON.stringify(s));}catch(e){}},
+  load(){try{const s=localStorage.getItem('tha43');return s?JSON.parse(s):null;}catch(e){return null;}},
+  clear(){try{localStorage.removeItem('tha43');}catch(e){}},
+  saveLB(e){try{let lb=this.lbLoad();lb.push(e);lb.sort((a,b)=>b.c-a.c);lb=lb.slice(0,5);localStorage.setItem('tha43lb',JSON.stringify(lb));}catch(e){}},
+  lbLoad(){try{return JSON.parse(localStorage.getItem('tha43lb')||'[]');}catch(e){return[];}}
+};
+
+/* ── AUDIO ──────────────────────────────────────────────────────── */
+// IMPORTANT: Audio NEVER reads or writes Game.night — that's [FIX 3].
+const SFX = {
+  ac:null, en:true, oscAmb:null, gainAmb:null, ambOn:false,
+  init(){if(this.ac)return;try{this.ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}},
+  play(type,freqs,vol,dur){
+    if(!this.en||!this.ac)return;
+    const t=this.ac.currentTime,o=this.ac.createOscillator(),g=this.ac.createGain();
+    o.type=type;o.frequency.setValueAtTime(freqs[0],t);
+    if(freqs[1])o.frequency.exponentialRampToValueAtTime(freqs[1],t+dur*.6);
+    if(freqs[2])o.frequency.exponentialRampToValueAtTime(freqs[2],t+dur*.95);
+    g.gain.setValueAtTime(vol,t);g.gain.linearRampToValueAtTime(0,t+dur);
+    o.connect(g);g.connect(this.ac.destination);o.start();o.stop(t+dur);
+  },
+  sfx(n){
+    if(!this.en||!this.ac)return;
+    if(n==='jump')   this.play('sine',[380,640],0.09,0.14);
+    if(n==='coin')   this.play('square',[880,1400],0.04,0.10);
+    if(n==='win')    this.play('triangle',[500,750,1000],0.08,0.5);
+    if(n==='fail')   this.play('sawtooth',[210,140],0.08,0.22);
+    if(n==='castle'){this.play('sine',[440,660,880],0.09,0.7);setTimeout(()=>this.play('sine',[880,1100],0.06,0.4),320);}
+    if(n==='jp')     this.play('sawtooth',[80,100],0.022,0.09);
+    if(n==='pickup') this.play('sine',[600,1200],0.07,0.25);
+  },
+  startAmb(){
+    // Read Game.night only for frequency — never modify it
+    if(!this.ac||!this.en||this.ambOn)return;
+    this.oscAmb=this.ac.createOscillator();this.gainAmb=this.ac.createGain();
+    this.oscAmb.type='sine';this.oscAmb.frequency.value=Game.night?85:115;
+    this.gainAmb.gain.setValueAtTime(0,this.ac.currentTime);
+    this.gainAmb.gain.linearRampToValueAtTime(0.018,this.ac.currentTime+2);
+    this.oscAmb.connect(this.gainAmb);this.gainAmb.connect(this.ac.destination);
+    this.oscAmb.start();this.ambOn=true;
+  },
+  stopAmb(){
+    if(!this.ambOn||!this.gainAmb)return;
+    try{this.gainAmb.gain.cancelScheduledValues(this.ac.currentTime);this.gainAmb.gain.linearRampToValueAtTime(0,this.ac.currentTime+0.5);}catch(e){}
+    const o=this.oscAmb;
+    setTimeout(()=>{try{o&&o.stop();}catch(e){}this.oscAmb=null;this.ambOn=false;},600);
+  },
+  // Passing explicit 'on' — never reads Game state
+  setAmb(on){if(!this.en||!this.ac){this.stopAmb();return;}on?this.startAmb():this.stopAmb();}
+};
+
+/* ── INPUT ──────────────────────────────────────────────────────── */
+const K={L:false,R:false,jbuf:0,jheld:false,jp:false};
+window.addEventListener('keydown',e=>{
+  if(['ArrowLeft','a','A'].includes(e.key))K.L=true;
+  if(['ArrowRight','d','D'].includes(e.key))K.R=true;
+  if([' ','Space'].includes(e.key)){
+    K.jbuf=JBUF;
+    K.jheld=true;
+    // Prevent default scrolling and button clicking, unless typing in an input
+    if(e.target.tagName !== 'INPUT') e.preventDefault(); 
+  }
+  if(['ArrowUp','w','W'].includes(e.key)){
+    K.jp=true;
+    if(e.target.tagName !== 'INPUT') e.preventDefault();
+  }
+});
+window.addEventListener('keyup',e=>{
+  if(['ArrowLeft','a','A'].includes(e.key))K.L=false;
+  if(['ArrowRight','d','D'].includes(e.key))K.R=false;
+  if([' ','Space'].includes(e.key))K.jheld=false;
+  if(['ArrowUp','w','W'].includes(e.key))K.jp=false;
+});
+
+/* ── UTILITIES ──────────────────────────────────────────────────── */
+const rr=(c,x,y,w,h,r,fill=true)=>{c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();fill?c.fill():c.stroke();};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const hit=(ax,ay,aw,ah,bx,by,bw,bh)=>ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;
+const shuf=a=>{let b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
+const lerp=(a,b,t)=>a+(b-a)*t;
+const lrgb=(h1,h2,t)=>{const p=(h,i)=>parseInt(h.slice(i,i+2),16);return `rgb(${Math.round(lerp(p(h1,1),p(h2,1),t))},${Math.round(lerp(p(h1,3),p(h2,3),t))},${Math.round(lerp(p(h1,5),p(h2,5),t))})`; };
+
+/* ── STAGE BANNER (drawn on canvas, not a modal) ──────────────── */
+// [FIX 5] Shows "STAGE N — Title" text overlay on the game canvas itself.
+// The game loop continues running during the banner — player can even move!
+// Banner fades in, holds, then slides/fades out over 3 seconds total.
+const Banner={
+  active:false, timer:0, total:200,  // ~3.3s at 60fps
+  t1:'', t2:'', t3:'',              // text lines
+  show(t1,t2,t3=''){
+    this.t1=t1; this.t2=t2; this.t3=t3;
+    this.timer=0; this.active=true;
+  },
+  tick(){ if(this.active){ this.timer++; if(this.timer>=this.total) this.active=false; } },
+  draw(c,W,H){
+    if(!this.active) return;
+    const t=this.timer, total=this.total;
+    // Fade in during first 20 frames, fade out during last 30 frames
+    let alpha=1;
+    if(t<20) alpha=t/20;
+    else if(t>total-30) alpha=(total-t)/30;
+    // Slide in from left during first 20 frames
+    const slide=t<20 ? (1-t/20)*-80 : 0;
+
+    c.save();
+    c.globalAlpha=alpha;
+    c.translate(slide,0);
+
+    // Background pill
+    const bx=W/2, by=H/2-10;
+    c.fillStyle='rgba(2,13,40,0.88)';
+    rr(c,bx-240,by-70,480,130,20);
+
+    // Glowing top border
+    const grd=c.createLinearGradient(bx-240,by-70,bx+240,by-70);
+    grd.addColorStop(0,'#f36b25'); grd.addColorStop(.5,'#ffd700'); grd.addColorStop(1,'#3aa0ff');
+    c.fillStyle=grd; c.fillRect(bx-240,by-70,480,4);
+
+    // Stage label (small caps)
+    c.fillStyle='rgba(255,180,80,.85)';
+    c.font='bold 13px Segoe UI,sans-serif';
+    c.textAlign='center';
+    c.fillText(this.t1, bx, by-35);
+
+    // Stage title (large)
+    c.fillStyle='#ffffff';
+    c.font='bold 26px Segoe UI,sans-serif';
+    c.fillText(this.t2, bx, by+5);
+
+    // Tip line (small, muted)
+    if(this.t3){
+      c.fillStyle='rgba(180,210,255,.75)';
+      c.font='13px Segoe UI,sans-serif';
+      c.fillText(this.t3, bx, by+35);
+    }
+
+    // Animated pulse dot indicators
+    const pulse=Math.sin(this.timer*.18)*4;
+    ['#f36b25','#ffd700','#3aa0ff'].forEach((col,i)=>{
+      c.fillStyle=col;
+      c.beginPath();
+      c.arc(bx-20+i*20, by+58+pulse*(i%2===0?1:-1), 4, 0, Math.PI*2);
+      c.fill();
+    });
+
+    c.restore();
+  }
+};
+
+/* ── PLAYER ─────────────────────────────────────────────────────── */
+class Player{
+  constructor(){
+    this.W=40; this.H=54;
+    this.x=80; this.y=300;
+    this.vx=0; this.vy=0;
+    this.onGnd=false; this.coy=0;
+    this.frame=0; this.ft=0; this.facing=1; this.state='idle';
+    this.fuel=JP_MAX; this.jpOn=false; this.jpFire=[];
+    this.name='Hero'; this.img=null;
+    // [FIX 4] Cooldown prevents quiz popup immediately after spawn/respawn
+    this.quizCD=0;
+  }
+
+  // Place player on a platform with zero velocity — NO gravity pre-applied
+  spawnOn(plat){
+    this.x=plat.x+20;
+    this.y=plat.y-this.H-1;  // 1px above platform surface
+    this.vx=0; this.vy=0;
+    this.onGnd=true; this.coy=COYOTE;
+    // [FIX 4] Set cooldown so orb collision won't fire for ~2 seconds
+    this.quizCD=140;
+  }
+
+  update(world){
+    // ── Horizontal movement ──
+    let ax=0;
+    if(K.L){ax=-ACCEL;this.facing=-1;}
+    if(K.R){ax= ACCEL;this.facing= 1;}
+    if(ax) this.vx+=ax*(this.onGnd?1:.85);
+    else   this.vx*=this.onGnd?FRIC:AIR_FRIC;
+    if(Math.abs(this.vx)<.05)this.vx=0;
+    this.vx=clamp(this.vx,-MAX_SPD,MAX_SPD);
+
+    // ── Jump with coyote time + buffer ──
+    if(K.jbuf>0&&(this.onGnd||this.coy>0)){
+      this.vy=JUMP_VEL;this.onGnd=false;this.coy=0;K.jbuf=0;SFX.sfx('jump');
+    }
+    // Short-hop: let go early to reduce jump height
+    if(!K.jheld&&this.vy<0) this.vy+=G*JUMP_M;
+
+    // ── [FIX 1] JETPACK — thrust applied BEFORE gravity ──────────────
+    // This is the key fix: thrust (-2.6) is added first.
+    // Then gravity (+1.0 or +1.6) is added AFTER.
+    // Net upward acceleration while jetpacking: -2.6 + 1.0 = -1.6 px/frame²
+    // Without this order, old code did: +1.0 gravity then -1.2 thrust = -0.2 (barely works)
+    if(K.jp&&this.jpOn&&this.fuel>0){
+      // Apply thrust — clamp so player can't exceed max upward speed
+      this.vy=Math.max(this.vy+JP_THRUST, JP_MAX_VY);
+      this.fuel=Math.max(0,this.fuel-JP_DRAIN);
+      // Spawn exhaust flame particle
+      this.jpFire.push({
+        x:this.x+this.W/2+(Math.random()-.5)*10,
+        y:this.y+this.H,
+        vx:(Math.random()-.5)*3,
+        vy:2+Math.random()*3,
+        life:1
+      });
+      SFX.sfx('jp');
+      // Update HUD fuel display
+      const pct=Math.round(this.fuel/JP_MAX*100);
+      document.getElementById('fuelFill').style.width=pct+'%';
+      document.getElementById('fuelPct').innerText=pct;
+    }
+    // Decay flame particles
+    this.jpFire=this.jpFire.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=.055;return p.life>0;});
+
+    // ── Gravity (applied AFTER jetpack thrust) ──
+    if(this.vy>0) this.vy+=G*FALL_M;  // Falling: extra gravity for snappy feel
+    else          this.vy+=G;           // Rising: normal gravity
+    this.vy=clamp(this.vy,-30,TERM_V);
+    if(K.jbuf>0)K.jbuf--;
+
+    // ── X movement + wall collisions ──
+    this.x+=this.vx;
+    for(const p of world.plats){
+      if(hit(this.x,this.y,this.W,this.H,p.x,p.y,p.w,p.h)){
+        if(this.vx>0){this.x=p.x-this.W-.5;this.vx=0;}
+        else if(this.vx<0){this.x=p.x+p.w+.5;this.vx=0;}
+      }
+    }
+    // Don't let player leave left edge
+    if(this.x<0){this.x=0;this.vx=0;}
+
+    // ── Y movement + platform collisions ──
+    this.y+=this.vy;
+    this.onGnd=false;
+    for(const p of world.plats){
+      if(hit(this.x,this.y,this.W,this.H,p.x,p.y,p.w,p.h)){
+        if(this.vy>=0&&this.y+this.H<=p.y+this.H*.55){
+          // Land on top
+          this.y=p.y-this.H-.5;this.vy=0;this.onGnd=true;
+          if(p.mv)this.x+=p.vx; // Carry on moving platform
+        } else if(this.vy<0){
+          // Hit ceiling of platform from below
+          this.y=p.y+p.h+.5;this.vy=0;
+        }
+      }
+    }
+
+    // [FIX 2] HARD CEILING — player cannot fly above top of canvas
+    if(this.y<5){this.y=5;if(this.vy<0)this.vy=0;}
+
+    // Coyote time management
+    if(this.onGnd) this.coy=COYOTE;
+    else if(this.coy>0) this.coy--;
+
+    // Animation state
+    if(!this.onGnd) this.state=(K.jp&&this.jpOn&&this.fuel>0)?'jp':this.vy<0?'jump':'fall';
+    else this.state=Math.abs(this.vx)>.6?'run':'idle';
+    this.ft++;
+    if(this.state==='run'){if(this.ft>5){this.frame=(this.frame+1)%4;this.ft=0;}}
+    else{this.frame=0;this.ft=0;}
+
+    // Tick down quiz cooldown (prevents quiz on first jump after spawn)
+    if(this.quizCD>0)this.quizCD--;
+  }
+
+  draw(c,ox){
+    const sx=this.x-ox, cx=sx+this.W/2;
+
+    // Jetpack exhaust flame particles
+    for(const p of this.jpFire){
+      c.globalAlpha=p.life*.9;
+      const g=c.createRadialGradient(p.x-ox,p.y,0,p.x-ox,p.y,11);
+      g.addColorStop(0,'#ffaa00');g.addColorStop(.5,'rgba(255,80,0,.4)');g.addColorStop(1,'transparent');
+      c.fillStyle=g;c.beginPath();c.arc(p.x-ox,p.y,11,0,Math.PI*2);c.fill();
+    }
+    c.globalAlpha=1;
+
+    // Shadow ellipse beneath player
+    c.fillStyle='rgba(0,0,0,.12)';
+    c.beginPath();c.ellipse(cx,this.y+this.H+3,this.W*.42,4,0,0,Math.PI*2);c.fill();
+
+    c.save();
+    c.translate(cx,this.y+22);
+    c.scale(this.facing,1); // Flip horizontally for direction
+
+    // Bob: idle float, run bounce
+    const bob=this.state==='run'?Math.abs(Math.sin(this.frame*Math.PI/2))*4:
+              this.state==='idle'?Math.sin(Date.now()*.004)*2:0;
+    c.translate(0,-bob);
+
+    // Night mode: blue glow around player
+    if(Game.night){
+      const g=c.createRadialGradient(0,6,5,0,6,46);
+      g.addColorStop(0,'rgba(58,160,255,.28)');g.addColorStop(1,'transparent');
+      c.fillStyle=g;c.beginPath();c.arc(0,6,46,0,Math.PI*2);c.fill();
+    }
+    // Jetpack active: orange thrust glow
+    if(this.state==='jp'){
+      const g=c.createRadialGradient(0,18,3,0,18,36);
+      g.addColorStop(0,'rgba(255,140,0,.55)');g.addColorStop(1,'transparent');
+      c.fillStyle=g;c.beginPath();c.arc(0,18,36,0,Math.PI*2);c.fill();
+    }
+
+    // ── JETPACK BACKPACK & FLAME (Now applies to both avatars) ──
+    // Backpack (orange when jp equipped)
+    c.fillStyle = this.jpOn ? '#cc4400' : '#0176d3';
+    rr(c, -26, -6, 14, 28, 5); 
+    
+    if(this.jpOn){
+      // Animated nozzle flame on backpack
+      c.fillStyle = 'rgba(255,90,0,.8)';
+      c.beginPath();
+      c.ellipse(-19, 27, 5, 7+Math.sin(Date.now()*.025)*3, 0, 0, Math.PI*2);
+      c.fill();
+    }
+
+    if(this.img){
+      // Custom avatar image
+      c.drawImage(this.img,-20,-22,40,54);
+    } else {
+      // ── Default Astro astronaut sprite ──
+      // Body suit
+      const bg=c.createLinearGradient(-13,0,13,0);
+      bg.addColorStop(0,'#dceeff');bg.addColorStop(.5,'#ffffff');bg.addColorStop(1,'#cce0f5');
+      c.fillStyle=bg;rr(c,-13,0,26,30,8);
+      // Blue Salesforce stripe + orange accent line
+      c.fillStyle='#0176d3';c.fillRect(-13,11,26,5);
+      c.fillStyle='#f36b25';c.fillRect(-13,15,26,2);
+      // Helmet dome
+      const hg=c.createRadialGradient(-4,-14,2,0,-12,22);
+      hg.addColorStop(0,'#f0f8ff');hg.addColorStop(1,'#cce0f5');
+      c.fillStyle=hg;c.beginPath();c.arc(0,-12,20,0,Math.PI*2);c.fill();
+      c.strokeStyle='rgba(1,118,211,.14)';c.lineWidth=1.5;
+      c.beginPath();c.arc(0,-12,20,0,Math.PI*2);c.stroke();
+      // Visor (dark with specular highlights)
+      const vg=c.createRadialGradient(2,-10,3,4,-12,14);
+      vg.addColorStop(0,'#0a4c99');vg.addColorStop(1,'#021e50');
+      c.fillStyle=vg;c.beginPath();c.arc(4,-12,13,0,Math.PI*2);c.fill();
+      c.fillStyle='rgba(255,255,255,.45)';c.beginPath();c.arc(8,-17,5,0,Math.PI*2);c.fill();
+      c.fillStyle='rgba(255,255,255,.2)';c.beginPath();c.arc(1,-22,3,0,Math.PI*2);c.fill();
+      // Trailhead star badge
+      c.fillStyle='#f36b25';c.font='bold 8px sans-serif';c.textAlign='center';c.fillText('★',-9,-9);
+      // Animated boots
+      c.fillStyle='#0a4c99';
+      const bl=this.state==='run'?Math.sin(this.frame*Math.PI/2)*9:0;
+      const br=this.state==='run'?Math.cos(this.frame*Math.PI/2)*9:0;
+      rr(c,-11,28,11,13+bl,4);rr(c,1,28,11,13+br,4);
+      c.fillStyle='rgba(255,255,255,.22)';c.fillRect(-11,29,11,3);c.fillRect(1,29,11,3);
+    }
+    c.restore();
+
+    // Floating name tag above player
+    c.save();
+    c.translate(cx,this.y-22-bob);
+    c.font='bold 10px Segoe UI,sans-serif';
+    const tw=c.measureText(this.name).width;
+    c.fillStyle='rgba(2,27,61,.88)';rr(c,-tw/2-8,-14,tw+16,17,6);
+    c.fillStyle='#fff';c.textAlign='center';c.fillText(this.name,0,0);
+    c.restore();
+  }
+}
+
+/* ── PLATFORM ────────────────────────────────────────────────────── */
+class Plat{
+  // mv=true: bounces between origX±120 at speed vx
+  constructor(x,y,w,h,mv=false,vx=0){this.x=x;this.y=y;this.w=w;this.h=h;this.mv=mv;this.vx=vx;this.ox=x;}
+}
+
+/* ── CASTLE ──────────────────────────────────────────────────────── */
+// [FIX 6] Includes a 3-layer explosion particle system triggered on entry
+class Castle{
+  constructor(x){
+    this.x=x;this.w=265;this.open=false;
+    this.ph=0;     // oscillation phase for glow/ripple animations
+    this.ban=0;    // banner flag sway phase
+    this.sparks=[];// gate-open sparkle particles
+    this.gY=500;   // ground Y (set from canvas height each frame)
+    // Explosion system
+    this.boom=[];         // active explosion particles
+    this.boomActive=false;
+    this.boomCD=0;        // prevents re-trigger during animation
+  }
+
+  setOpen(v){
+    if(v&&!this.open){
+      // Gate-open celebration sparkles
+      for(let i=0;i<32;i++)this.sparks.push({
+        x:this.x+this.w/2,y:this.gY-110,
+        vx:(Math.random()-.5)*6,vy:-5-Math.random()*5,
+        life:1,c:['#f36b25','#ffd700','#3aa0ff','#c084fc','#4ade80'][i%5]
+      });
+    }
+    this.open=v;
+  }
+
+  // [FIX 6] Castle entry explosion — 3 particle layers
+  triggerExplosion(){
+    if(this.boomActive)return;
+    this.boomActive=true;
+    const cx=this.x+this.w/2, cy=this.gY-80;
+
+    // Layer 1: 60 fast spark streaks (sharp lines)
+    for(let i=0;i<60;i++){
+      const a=Math.random()*Math.PI*2, s=5+Math.random()*12;
+      this.boom.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s-3,
+        life:1,r:2+Math.random()*4,
+        c:['#f36b25','#ffd700','#ff4400','#ffaa00','#fff','#4ade80','#3aa0ff'][Math.floor(Math.random()*7)],
+        type:'spark'});
+    }
+    // Layer 2: 35 large glowing orbs (radial gradient spheres)
+    for(let i=0;i<35;i++){
+      const a=Math.random()*Math.PI*2, s=2+Math.random()*6;
+      this.boom.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,
+        life:1,r:10+Math.random()*18,
+        c:['#ffd700','#f36b25','#ffcc00','#ff8800'][Math.floor(Math.random()*4)],
+        type:'orb'});
+    }
+    // Layer 3: 45 rising embers
+    for(let i=0;i<45;i++){
+      this.boom.push({
+        x:cx+(Math.random()-.5)*80,y:cy+(Math.random()-.5)*20,
+        vx:(Math.random()-.5)*4,vy:-6-Math.random()*9,
+        life:1,r:2+Math.random()*4,
+        c:['#ff8800','#ffdd00','#ff4400','#ffaa00'][Math.floor(Math.random()*4)],
+        type:'ember'
+      });
+    }
+  }
+
+  canEnter(px,py,pw,ph){
+    if(!this.open)return false;
+    const gx=this.x+this.w/2-40;
+    return px+pw>gx&&px<gx+80&&py+ph>this.gY-100&&py<this.gY;
+  }
+
+  update(){
+    this.ph+=.05;this.ban+=.028;
+    // Update gate-open sparkles
+    this.sparks=this.sparks.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.life-=.02;return p.life>0;});
+    // Update explosion particles
+    if(this.boomActive){
+      this.boom=this.boom.filter(p=>{
+        p.x+=p.vx;p.y+=p.vy;
+        p.vy+=.2;  // gravity drags particles down
+        p.vx*=.96; // slight horizontal drag
+        p.life-=(p.type==='orb'?0.011:0.019);
+        return p.life>0;
+      });
+      if(this.boom.length===0)this.boomActive=false;
+    }
+  }
+
+  draw(c,ox){
+    const bx=this.x-ox,gY=this.gY,pb=Math.sin(this.ph);
+
+    // Gate-open sparkles
+    for(const p of this.sparks){c.globalAlpha=p.life;c.fillStyle=p.c;c.beginPath();c.arc(p.x-ox,p.y,5,0,Math.PI*2);c.fill();}
+
+    // [FIX 6] Draw explosion particles — 3 visual styles
+    for(const p of this.boom){
+      c.globalAlpha=p.life;
+      if(p.type==='orb'){
+        // Large radial gradient sphere
+        const g=c.createRadialGradient(p.x-ox,p.y,0,p.x-ox,p.y,p.r*(p.life+.2));
+        g.addColorStop(0,'rgba(255,255,220,.95)');g.addColorStop(.4,p.c);g.addColorStop(1,'transparent');
+        c.fillStyle=g;c.beginPath();c.arc(p.x-ox,p.y,p.r*1.6,0,Math.PI*2);c.fill();
+      } else if(p.type==='spark'){
+        // Streak line + dot at tip
+        c.strokeStyle=p.c;c.lineWidth=p.r*.6;
+        c.beginPath();c.moveTo(p.x-ox,p.y);c.lineTo(p.x-ox-p.vx*2.5,p.y-p.vy*2.5);c.stroke();
+        c.fillStyle=p.c;c.beginPath();c.arc(p.x-ox,p.y,p.r*.4,0,Math.PI*2);c.fill();
+      } else {
+        // Ember: simple fading dot
+        c.fillStyle=p.c;c.beginPath();c.arc(p.x-ox,p.y,p.r*p.life,0,Math.PI*2);c.fill();
+      }
+    }
+    c.globalAlpha=1;
+
+    // Castle shadow
+    c.fillStyle='rgba(0,0,0,.22)';
+    c.beginPath();c.ellipse(bx+this.w/2,gY+4,this.w*.55,10,0,0,Math.PI*2);c.fill();
+
+    // Main wall
+    const wg=c.createLinearGradient(bx,gY-230,bx,gY);
+    wg.addColorStop(0,this.open?'#2a0850':'#120525');
+    wg.addColorStop(.5,this.open?'#420d80':'#1e0940');
+    wg.addColorStop(1,this.open?'#300970':'#180730');
+    c.fillStyle=wg;rr(c,bx+18,gY-230,this.w-36,230,4);
+    // Stone texture lines
+    c.strokeStyle='rgba(255,255,255,'+(this.open?.06:.03)+')';c.lineWidth=1;
+    for(let r=0;r<5;r++)for(let col=0;col<4;col++)
+      c.strokeRect(bx+20+col*((this.w-38)/4),gY-228+r*(228/5),(this.w-38)/4,228/5);
+    // Top battlements
+    c.fillStyle=this.open?'#350b62':'#180730';
+    const bw=(this.w-50)/7;
+    for(let i=0;i<7;i++)rr(c,bx+24+i*bw,gY-248,bw-4,20,3);
+    // Left, right, center towers
+    this._tower(c,bx-10,gY-330,70,255);
+    this._tower(c,bx+this.w-60,gY-330,70,255);
+    this._tower(c,bx+this.w/2-30,gY-308,60,210,true);
+
+    // Gate archway
+    const GW=82,GH=96,gx=bx+this.w/2-GW/2,gy=gY-GH;
+    if(this.open){
+      // Portal glow
+      const pg=c.createRadialGradient(bx+this.w/2,gY-48,5,bx+this.w/2,gY-48,72);
+      pg.addColorStop(0,`rgba(255,130,20,${.75+pb*.15})`);pg.addColorStop(.4,`rgba(255,180,40,${.3+pb*.08})`);pg.addColorStop(1,'transparent');
+      c.fillStyle=pg;c.beginPath();c.arc(bx+this.w/2,gY-48,78,0,Math.PI*2);c.fill();
+      for(let i=0;i<3;i++){
+        const ri=22+i*18+Math.sin(this.ph*1.4+i*1.1)*5;
+        c.strokeStyle=`rgba(255,160,50,${.42-i*.1})`;c.lineWidth=2.5-i*.5;
+        c.beginPath();c.arc(bx+this.w/2,gY-48,ri,0,Math.PI*2);c.stroke();
+      }
+    }
+    c.fillStyle=this.open?`rgba(210,90,0,${.12+pb*.04})`:'rgba(0,0,0,.95)';
+    c.beginPath();c.moveTo(gx,gY);c.lineTo(gx,gy+24);c.quadraticCurveTo(gx,gy-14,gx+GW/2,gy-14);c.quadraticCurveTo(gx+GW,gy-14,gx+GW,gy+24);c.lineTo(gx+GW,gY);c.closePath();c.fill();
+    c.strokeStyle=this.open?`rgba(255,165,50,${.85+pb*.12})`:'rgba(190,150,50,.42)';c.lineWidth=3;c.stroke();
+    if(!this.open){
+      // Portcullis bars
+      c.strokeStyle='rgba(210,165,50,.3)';c.lineWidth=5;
+      for(let i=0;i<4;i++){c.beginPath();c.moveTo(gx+11+i*(GW-22)/3,gY);c.lineTo(gx+11+i*(GW-22)/3,gy+18);c.stroke();}
+      c.strokeStyle='rgba(210,165,50,.18)';c.lineWidth=3;
+      for(let i=0;i<3;i++){c.beginPath();c.moveTo(gx+5,gy+24+i*22);c.lineTo(gx+GW-5,gy+24+i*22);c.stroke();}
+    }
+    // Trailhead banner flag
+    c.save();c.translate(bx+this.w/2,gY-308);
+    const sw=Math.sin(this.ban)*7;c.rotate(sw*.02);
+    c.strokeStyle='rgba(255,255,255,.2)';c.lineWidth=2;c.beginPath();c.moveTo(0,-54);c.lineTo(0,14);c.stroke();
+    const fg=c.createLinearGradient(0,-54,48,-54);fg.addColorStop(0,'#0176d3');fg.addColorStop(1,'#f36b25');
+    c.fillStyle=fg;c.beginPath();c.moveTo(0,-54);c.lineTo(48,-44+sw);c.lineTo(0,-30);c.closePath();c.fill();
+    c.fillStyle='#fff';c.font='bold 8px sans-serif';c.textAlign='left';c.fillText('TH',6,-45+sw*.5);
+    c.restore();
+    // Glowing windows
+    [[bx+34,gY-182],[bx+this.w-64,gY-182],[bx+this.w/2-11,gY-178]].forEach(([wx,wy])=>{
+      const wa=.6+pb*.18;
+      const wg2=c.createRadialGradient(wx+11,wy+13,2,wx+11,wy+13,22);
+      wg2.addColorStop(0,`rgba(255,215,80,${wa})`);wg2.addColorStop(1,'transparent');
+      c.fillStyle=wg2;c.beginPath();c.arc(wx+11,wy+13,24,0,Math.PI*2);c.fill();
+      c.fillStyle=`rgba(255,210,70,${.7+pb*.18})`;
+      c.beginPath();c.moveTo(wx,wy+22);c.lineTo(wx,wy+5);c.quadraticCurveTo(wx,wy-2,wx+11,wy-2);c.quadraticCurveTo(wx+22,wy-2,wx+22,wy+5);c.lineTo(wx+22,wy+22);c.closePath();c.fill();
+    });
+    // Sign plate
+    c.fillStyle='rgba(0,0,0,.42)';rr(c,bx+this.w/2-70,gY-82,140,26,4);
+    c.fillStyle=this.open?`rgba(255,130,40,${.9+pb*.08})`:'rgba(255,215,80,.7)';
+    c.font='bold 9px Segoe UI,sans-serif';c.textAlign='center';c.fillText('TRAILHEAD ARENA',bx+this.w/2,gY-65);
+    if(this.open){
+      c.font='bold 11px Segoe UI,sans-serif';c.fillStyle=`rgba(120,255,150,${.9+pb*.08})`;
+      c.fillText('\u27E9 ENTER \u27E8',bx+this.w/2,gY-50);
+    } else {
+      c.font='10px Segoe UI,sans-serif';c.fillStyle='rgba(210,170,70,.6)';
+      c.fillText('Complete 3 Challenges to Unlock',bx+this.w/2,gY-50);
+    }
+    // Off-screen arrow indicator
+    if(this.open&&bx+this.w/2>canvas.width+20){
+      c.fillStyle='rgba(255,140,40,.9)';c.font='bold 13px Segoe UI,sans-serif';c.textAlign='right';
+      c.fillText('\uD83C\uDFC0 Castle \u25B6',canvas.width-8,30);
+    }
+  }
+
+  _tower(c,tx,ty,tw,th,center=false){
+    const g=c.createLinearGradient(tx,ty,tx+tw,ty);
+    g.addColorStop(0,this.open?'#330e60':'#140720');g.addColorStop(.5,this.open?'#501490':'#200a38');g.addColorStop(1,this.open?'#330e60':'#140720');
+    c.fillStyle=g;rr(c,tx,ty,tw,th,3);
+    c.fillStyle=this.open?'#38106a':'#170930';
+    for(let i=0;i<3;i++)rr(c,tx+3+i*(tw/3),ty-18,tw/3-5,18,3);
+    const rg=c.createLinearGradient(tx,ty,tx+tw/2,ty-60);rg.addColorStop(0,this.open?'#7a40c8':'#1d0e38');rg.addColorStop(1,this.open?'#c080f8':'#2d1458');
+    c.fillStyle=rg;c.beginPath();c.moveTo(tx-8,ty);c.lineTo(tx+tw/2,ty-62);c.lineTo(tx+tw+8,ty);c.closePath();c.fill();
+    c.fillStyle='rgba(255,255,255,.1)';c.beginPath();c.moveTo(tx-8,ty);c.lineTo(tx+tw/2,ty-62);c.lineTo(tx+tw/2+8,ty-36);c.closePath();c.fill();
+    c.fillStyle='rgba(255,220,60,.75)';c.beginPath();c.arc(tx+tw/2,ty-64,4.5,0,Math.PI*2);c.fill();
+    const wy=ty+th*.3;
+    const wg=c.createRadialGradient(tx+tw/2,wy,2,tx+tw/2,wy,18);wg.addColorStop(0,'rgba(255,210,80,.65)');wg.addColorStop(1,'transparent');
+    c.fillStyle=wg;c.beginPath();c.arc(tx+tw/2,wy,20,0,Math.PI*2);c.fill();
+    c.fillStyle='rgba(255,205,70,.7)';
+    c.beginPath();c.moveTo(tx+tw/2-9,wy+14);c.lineTo(tx+tw/2-9,wy-2);c.quadraticCurveTo(tx+tw/2-9,wy-15,tx+tw/2,wy-15);c.quadraticCurveTo(tx+tw/2+9,wy-15,tx+tw/2+9,wy-2);c.lineTo(tx+tw/2+9,wy+14);c.closePath();c.fill();
+    if(center){c.fillStyle='rgba(0,0,0,.35)';rr(c,tx+tw/2-15,ty+th*.62,30,20,4);c.font='bold 12px sans-serif';c.textAlign='center';c.fillStyle='rgba(243,107,37,.9)';c.fillText('\uD83E\uDD94',tx+tw/2,ty+th*.62+14);}
+  }
+}
+
+/* ── JETPACK POWERUP ─────────────────────────────────────────────── */
+class JpPU{
+  constructor(x,y){this.x=x;this.y=y;this.W=36;this.H=36;this.got=false;this.ph=Math.random()*Math.PI*2;this.bob=Math.random()*Math.PI*2;}
+  update(){this.ph+=.07;this.bob+=.048;}
+  draw(c,ox){
+    if(this.got)return;
+    const sx=this.x-ox,sy=this.y+Math.sin(this.bob)*8;
+    const ga=.4+Math.sin(this.ph)*.18;
+    const g=c.createRadialGradient(sx+18,sy+18,3,sx+18,sy+18,34);g.addColorStop(0,`rgba(255,120,30,${ga+.2})`);g.addColorStop(1,'transparent');
+    c.fillStyle=g;c.beginPath();c.arc(sx+18,sy+18,36,0,Math.PI*2);c.fill();
+    const bg=c.createLinearGradient(sx+4,sy+4,sx+4,sy+28);bg.addColorStop(0,'#f87030');bg.addColorStop(1,'#d04010');
+    c.fillStyle=bg;rr(c,sx+4,sy+4,28,24,7);
+    c.fillStyle='rgba(255,255,255,.25)';rr(c,sx+6,sy+6,24,5,4);
+    c.fillStyle='#a82800';for(let i=0;i<3;i++)c.fillRect(sx+8+i*6,sy+13,4,11);
+    c.fillStyle='#7a2000';rr(c,sx+5,sy+24,11,11,4);rr(c,sx+20,sy+24,11,11,4);
+    const fh=8+Math.sin(this.ph)*4;
+    c.fillStyle='rgba(255,140,40,.95)';c.beginPath();c.ellipse(sx+10,sy+36+fh*.6,5,fh,0,0,Math.PI*2);c.fill();c.beginPath();c.ellipse(sx+26,sy+36+fh*.6,5,fh,0,0,Math.PI*2);c.fill();
+    c.fillStyle='rgba(255,225,80,.9)';c.beginPath();c.ellipse(sx+10,sy+34+fh*.6,3,fh*.6,0,0,Math.PI*2);c.fill();c.beginPath();c.ellipse(sx+26,sy+34+fh*.6,3,fh*.6,0,0,Math.PI*2);c.fill();
+    c.fillStyle='#fff';c.font='bold 12px sans-serif';c.textAlign='center';c.fillText('\u2726',sx+18,sy+20);
+    c.fillStyle='rgba(255,255,255,.85)';c.font='bold 7px Segoe UI,sans-serif';c.fillText('JETPACK',sx+18,sy+46);
+  }
+}
+
+/* ── QUIZ ORB ─────────────────────────────────────────────────────── */
+// Glowing gold orb above a platform. Touch it → quiz modal opens.
+class Orb{
+  constructor(x,idx,done=false){this.x=x;this.W=56;this.idx=idx;this.done=done;this.ph=Math.random()*Math.PI*2;}
+  draw(c,ox,baseY,sc){
+    const sx=this.x-ox,oy=baseY-98;this.ph+=.06;
+    const gl=14+Math.sin(this.ph)*10;
+    // Pedestal
+    const pg=c.createLinearGradient(sx,baseY-18,sx+56,baseY-18);pg.addColorStop(0,sc.bot);pg.addColorStop(.5,sc.top);pg.addColorStop(1,sc.bot);
+    c.fillStyle=pg;rr(c,sx,baseY-18,56,18,7);
+    c.fillStyle='#ffd700';c.fillRect(sx,baseY-18,56,3);
+    if(this.done){
+      // Green ✓ completed state
+      c.fillStyle='rgba(46,180,80,.22)';c.beginPath();c.arc(sx+28,oy+28,36,0,Math.PI*2);c.fill();
+      const dg=c.createRadialGradient(sx+22,oy+22,2,sx+28,oy+28,26);dg.addColorStop(0,'#4ade80');dg.addColorStop(1,'#1e9e50');
+      c.fillStyle=dg;c.beginPath();c.arc(sx+28,oy+28,24,0,Math.PI*2);c.fill();
+      c.fillStyle='#fff';c.font='bold 26px sans-serif';c.textAlign='center';c.fillText('\u2713',sx+28,oy+37);
+    } else {
+      // Active pulsing gold orb
+      const gg=c.createRadialGradient(sx+28,oy+28,4,sx+28,oy+28,32+gl);gg.addColorStop(0,'rgba(255,230,100,.95)');gg.addColorStop(.5,'rgba(255,185,40,.5)');gg.addColorStop(1,'transparent');
+      c.fillStyle=gg;c.beginPath();c.arc(sx+28,oy+28,40+gl,0,Math.PI*2);c.fill();
+      const og=c.createRadialGradient(sx+18,oy+18,2,sx+28,oy+28,25);og.addColorStop(0,'#fffff0');og.addColorStop(.4,'#ffbe00');og.addColorStop(1,'#ff8800');
+      c.fillStyle=og;c.beginPath();c.arc(sx+28,oy+28,23,0,Math.PI*2);c.fill();
+      c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=2.5;c.beginPath();c.arc(sx+28,oy+28,23,0,Math.PI*2);c.stroke();
+      c.fillStyle='rgba(255,255,255,.95)';c.beginPath();c.arc(sx+20,oy+20,5.5,0,Math.PI*2);c.fill();
+      c.fillStyle='rgba(50,10,0,.5)';c.font='bold 18px Segoe UI,sans-serif';c.textAlign='center';c.fillText('?',sx+28,oy+36);
+    }
+  }
+}
+
+/* ── COIN PARTICLE ───────────────────────────────────────────────── */
+// Spawns at orb position, does a pop arc, then magnetically pulls toward HUD
+class Coin{
+  constructor(x,y,tx,ty,v){this.x=x;this.y=y;this.tx=tx;this.ty=ty;this.vx=(Math.random()*4-2);this.vy=-8-Math.random()*3;this.v=v;this.done=false;this.life=0;this.spin=Math.random()*Math.PI*2;}
+  tick(){
+    this.life++;this.spin+=.25;
+    if(this.life>16){
+      const dx=this.tx-this.x,dy=this.ty-this.y,d=Math.max(1,Math.hypot(dx,dy));
+      const pull=Math.min(.88,this.life*.014);
+      this.vx+=(dx/d)*pull*10;this.vy+=(dy/d)*pull*10;
+      this.vx*=.86;this.vy*=.86;
+      if(d<16||this.life>175)this.done=true;
+    } else {this.vy+=.5;this.x+=this.vx;this.y+=this.vy;}
+  }
+  draw(c,ox){
+    c.save();c.translate(this.x-ox,this.y);c.rotate(this.spin);
+    c.fillStyle='#ffd700';
+    c.beginPath();c.ellipse(0,0,8,8*Math.abs(Math.cos(this.spin*.5)),0,0,Math.PI*2);c.fill();
+    c.fillStyle='rgba(255,255,255,.7)';c.beginPath();c.ellipse(-2,-2,3,3,0,0,Math.PI*2);c.fill();
+    c.restore();
+  }
+}
+
+/* ── ENVIRONMENT (parallax background) ──────────────────────────── */
+const ENV={
+  trees:[],clouds:[],stars:[],snow:[],w:0,h:0,
+  build(w,h){
+    this.w=w;this.h=h;this.trees=[];this.clouds=[];this.stars=[];this.snow=[];
+    for(let i=0;i<20;i++)this.trees.push({x:i*(w/17)+(Math.random()*44-22),bY:h-40,w:55+Math.random()*50,h:80+Math.random()*130,d:.2+Math.random()*.8,ph:Math.random()*Math.PI*2});
+    for(let i=0;i<12;i++)this.clouds.push({x:Math.random()*w*2,y:20+Math.random()*110,w:100+Math.random()*140,sp:.28+Math.random()*.5,d:.3+Math.random()*.5});
+    for(let i=0;i<120;i++)this.stars.push({x:Math.random()*w,y:Math.random()*(h*.7),s:.5+Math.random()*2,a:Math.random(),da:.007+Math.random()*.018});
+    for(let i=0;i<100;i++)this.snow.push({x:Math.random()*w,y:Math.random()*h,s:1.2+Math.random()*3,vy:.6+Math.random()*1.6,vx:-.35+Math.random()*.7});
+  },
+  tick(ox){
+    for(const t of this.trees)t.ph+=.002;
+    for(const cl of this.clouds){cl.x-=cl.sp;if(cl.x<-cl.w)cl.x=this.w+cl.w;}
+    if(Game.night)for(const s of this.stars){s.a+=s.da;if(s.a>1||s.a<0)s.da*=-1;}
+    if(Game.si===2)for(const s of this.snow){s.x+=s.vx;s.y+=s.vy;if(s.y>this.h){s.y=-8;s.x=Math.random()*this.w;}}
+  },
+  draw(c,ox){
+    const nt=Game.nightT,sc=SC[Game.si]||SC[0];
+    // Sky gradient interpolated between day and night colours
+    const sg=c.createLinearGradient(0,0,0,this.h);
+    sg.addColorStop(0,lrgb(sc.sky0,'#010c1e',nt));sg.addColorStop(1,lrgb(sc.sky1,'#061530',nt));
+    c.fillStyle=sg;c.fillRect(0,0,this.w,this.h);
+    // Stars (night only)
+    if(nt>.08){for(const s of this.stars){c.globalAlpha=Math.max(0,s.a)*nt;c.fillStyle='#fff';c.beginPath();c.arc(s.x,s.y,s.s,0,Math.PI*2);c.fill();}}
+    // Moon
+    if(nt>.1){c.globalAlpha=nt;c.fillStyle='rgba(210,225,255,.92)';c.beginPath();c.arc(this.w*.83,this.h*.1,26,0,Math.PI*2);c.fill();c.fillStyle='rgba(160,175,205,.26)';c.beginPath();c.arc(this.w*.83+6,this.h*.1-6,19,0,Math.PI*2);c.fill();}
+    // Sun + clouds (day only)
+    if(nt<.9){
+      c.globalAlpha=1-nt;
+      const sx=this.w*.1,sy=this.h*.1;
+      const sunG=c.createRadialGradient(sx,sy,4,sx,sy,55);sunG.addColorStop(0,'rgba(255,240,80,.9)');sunG.addColorStop(.35,'rgba(255,215,40,.3)');sunG.addColorStop(1,'transparent');
+      c.fillStyle=sunG;c.beginPath();c.arc(sx,sy,55,0,Math.PI*2);c.fill();
+      c.fillStyle='rgba(255,245,90,.96)';c.beginPath();c.arc(sx,sy,21,0,Math.PI*2);c.fill();
+      for(const cl of this.clouds){
+        const cx=cl.x-ox*cl.d*.28;
+        c.fillStyle='rgba(255,255,255,.9)';c.beginPath();c.ellipse(cx,cl.y,cl.w*.5,cl.w*.21,0,0,Math.PI*2);c.fill();
+        c.beginPath();c.ellipse(cx-cl.w*.18,cl.y+4,cl.w*.3,cl.w*.17,0,0,Math.PI*2);c.fill();
+        c.beginPath();c.ellipse(cx+cl.w*.19,cl.y+5,cl.w*.25,cl.w*.16,0,0,Math.PI*2);c.fill();
+      }
+    }
+    c.globalAlpha=1;
+    // Parallax trees
+    for(const t of this.trees){
+      const px=t.x-ox*t.d*.42,sw=Math.sin(t.ph)*7,a=.13+t.d*.31;
+      c.fillStyle=nt>.75?`rgba(4,12,38,${.5+t.d*.36})`:nt>.3?`rgba(${Math.round(lerp(18,4,nt))},${Math.round(lerp(72,12,nt))},${Math.round(lerp(20,36,nt))},${a})`:`rgba(18,72,20,${a})`;
+      c.fillRect(px+t.w/2-5*t.d,t.bY-t.h*.38,10*t.d,t.h*.38);
+      c.beginPath();c.ellipse(px+t.w/2+sw,t.bY-t.h*.3,t.w*.52,t.h*.5,0,0,Math.PI*2);c.fill();
+      c.beginPath();c.ellipse(px+t.w/2+sw*.6,t.bY-t.h*.52,t.w*.36,t.h*.33,0,0,Math.PI*2);c.fill();
+      c.beginPath();c.ellipse(px+t.w/2+sw*.3,t.bY-t.h*.7,t.w*.22,t.h*.22,0,0,Math.PI*2);c.fill();
+    }
+    // Stage 3 snow flakes
+    if(Game.si===2){c.fillStyle=`rgba(225,245,255,${.6*(1-.3*nt)})`;for(const s of this.snow){c.beginPath();c.arc(s.x,s.y,s.s,0,Math.PI*2);c.fill();}}
+    // Ground
+    const gg=c.createLinearGradient(0,this.h-40,0,this.h);gg.addColorStop(0,nt>.7?'#071006':'#3d8a25');gg.addColorStop(1,nt>.7?'#030802':'#225514');
+    c.fillStyle=gg;c.fillRect(0,this.h-40,this.w,40);
+    c.fillStyle=nt>.7?'rgba(15,40,10,.5)':'rgba(75,145,40,.35)';c.fillRect(0,this.h-40,this.w,5);
+  }
+};
+
+/* ── WORLD (stage container) ─────────────────────────────────────── */
+class World{
+  constructor(si,saved=null){
+    this.si=si;const s=STAGES[si];
+    this.title=s.title;this.desc=s.desc;
+    this.plats=[];this.orbs=[];this.coins=[];this.jpPUs=[];
+    for(const p of s.plats)this.plats.push(new Plat(p[0],p[1],p[2],p[3]));
+    if(s.moving)for(const m of s.moving)this.plats.push(new Plat(m.x,m.y,m.w,m.h,true,m.vx));
+    // Place jetpack on specified platform
+    if(s.jpPlat<this.plats.length){
+      const jp=this.plats[s.jpPlat];
+      this.jpPUs.push(new JpPU(jp.x+jp.w/2-18,jp.y-58));
+    }
+    this.castle=new Castle(s.castleX);
+    if(saved){
+      this.done=saved.done;this.selQ=saved.selQ;this.attempts=saved.attempts;
+      for(let i=0;i<s.cxs.length;i++)this.orbs.push(new Orb(s.cxs[i],i,saved.orbs[i].done));
+    } else {
+      this.done=0;this.selQ=shuf(s.qs).slice(0,3);this.attempts=new Array(3).fill(0);
+      for(let i=0;i<s.cxs.length;i++)this.orbs.push(new Orb(s.cxs[i],i));
+    }
+  }
+  tick(px,py,pw,ph){
+    // Move bouncing platforms
+    for(const p of this.plats){if(p.mv){p.x+=p.vx;if(p.x<p.ox-120||p.x>p.ox+120)p.vx*=-1;}}
+    // Jetpack pickup detection
+    for(const jp of this.jpPUs){
+      if(!jp.got&&hit(px,py,pw,ph,jp.x,jp.y,jp.W,jp.H)){
+        jp.got=true;Game.player.jpOn=true;Game.player.fuel=JP_MAX;
+        document.getElementById('jetHUD').classList.add('on');
+        document.getElementById('fuelFill').style.width='100%';
+        document.getElementById('fuelPct').innerText='100';
+        SFX.sfx('pickup');
+      }
+      if(!jp.got)jp.update();
+    }
+    // Coin physics
+    let added=0;
+    for(const coin of this.coins){coin.tick();if(coin.done)added+=coin.v;}
+    this.coins=this.coins.filter(c=>!c.done);
+    // Castle
+    this.castle.gY=canvas.height-40;
+    this.castle.setOpen(this.done>=3);
+    this.castle.update();
+    return added;
+  }
+}
+
+/* ── GAME ENGINE ─────────────────────────────────────────────────── */
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+const Game={
+  player:null,world:null,ox:0,
+  si:0,coins:0,correct:0,
+  playing:false,paused:false,
+  // [FIX 3] Night mode is sovereign state — only toggled by nightBtn click, NEVER by audio/quiz
+  night:false,nightT:0,
+  raf:null,enterCD:0,
+
+  init(){
+    this.player=new Player();
+    this.resize();
+    window.addEventListener('resize',()=>this.resize());
+    ENV.build(canvas.width,canvas.height);
+    const sv=DB.load();
+    if(sv){document.getElementById('resumeBtn').style.display='block';document.getElementById('resumeBtn').onclick=()=>this.resume(sv);}
+    this.world=new World(0);
+    this.player.spawnOn(this.world.plats[0]);
+    this.updateUI();this.drawIdle();
+    // Avatar upload
+    document.getElementById('avatarIn').addEventListener('change',e=>{
+      const f=e.target.files[0];if(!f)return;
+      const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{this.player.img=i;if(!this.playing)this.drawIdle();};i.src=ev.target.result;};r.readAsDataURL(f);
+    });
+  },
+
+  resize(){
+    const rect=canvas.getBoundingClientRect();if(!rect.width)return;
+    canvas.width=Math.floor(rect.width);canvas.height=Math.floor(rect.height);
+    ENV.build(canvas.width,canvas.height);
+    if(!this.playing&&this.world)this.drawIdle();
+  },
+
+  startNew(){
+    DB.clear();document.getElementById('resumeBtn').style.display='none';
+    SFX.init();this.applySnd();
+    const name=document.getElementById('nameIn').value.trim()||'Trailblazer';
+    this.player.name=name;
+    ['pName','hudName'].forEach(id=>document.getElementById(id).innerText=name);
+    this.si=0;this.coins=0;this.correct=0;
+    // [FIX 3] Preserve night state — don't reset it on new game
+    this.nightT=this.night?1:0;
+    this.world=new World(0);
+    this.player.spawnOn(this.world.plats[0]);
+    this.player.jpOn=false;document.getElementById('jetHUD').classList.remove('on');
+    this.ox=0;this.playing=true;this.paused=false;this.enterCD=0;
+    this.saveState();
+    // [FIX 5] Show stage banner ON canvas instead of blocking modal
+    const s=STAGES[0];
+    Banner.show(`✦ STAGE 1 ✦`,s.title,s.tip);
+    SFX.setAmb(true);
+    this.updateUI();
+    this.startLoop();
+  },
+
+  resume(sv){
+    DB.clear();document.getElementById('resumeBtn').style.display='none';
+    SFX.init();this.applySnd();
+    this.si=sv.si;this.coins=sv.coins;this.correct=sv.correct;
+    // [FIX 3] Restore saved night mode exactly — no side effects
+    this.night=sv.night||false;this.nightT=this.night?1:0;
+    document.getElementById('nightBtn').innerText=this.night?'☀️ Day Mode':'🌙 Night Mode';
+    this.world=new World(this.si,sv.world);
+    this.player.spawnOn(this.world.plats[0]);
+    this.player.x=sv.px;this.player.y=sv.py;
+    this.player.jpOn=false;document.getElementById('jetHUD').classList.remove('on');
+    this.ox=sv.ox;this.playing=true;this.paused=false;this.enterCD=0;
+    const name=document.getElementById('nameIn').value.trim()||sv.name||'Trailblazer';
+    this.player.name=name;['pName','hudName'].forEach(id=>document.getElementById(id).innerText=name);
+    // Show resume modal briefly (DOM-based, as game state is complex at this point)
+    this.showResumeModal();
+    this.updateUI();this.startLoop();
+  },
+
+  restartStage(){
+    // Respawn near last completed checkpoint
+    const lastDone=this.world.orbs.slice().reverse().find(o=>o.done);
+    let p=this.world.plats[0];
+    if(lastDone)p=this.world.plats.reduce((a,b)=>Math.abs(b.x-lastDone.x)<Math.abs(a.x-lastDone.x)?b:a);
+    this.player.spawnOn(p);
+    this.player.jpOn=false;document.getElementById('jetHUD').classList.remove('on');
+    this.ox=Math.max(0,this.player.x-300);
+    this.playing=true;this.paused=false;this.enterCD=0;
+    this.saveState();this.startLoop();
+  },
+
+  saveState(){
+    if(!this.playing)return;
+    DB.save({si:this.si,coins:this.coins,correct:this.correct,night:this.night,
+      px:this.player.x,py:this.player.y,ox:this.ox,name:this.player.name,
+      world:{done:this.world.done,selQ:this.world.selQ,attempts:this.world.attempts,
+             orbs:this.world.orbs.map(o=>({done:o.done}))}});
+  },
+
+  startLoop(){
+    if(this.raf)cancelAnimationFrame(this.raf);
+    const loop=()=>{
+      this.raf=requestAnimationFrame(loop);
+      if(!this.playing)return;
+      if(!this.paused)this.tick();
+      this.render();
+    };
+    loop();
+  },
+
+  tick(){
+    // [FIX 3] nightT smoothly lerps toward night/day target.
+    // This is PURELY visual interpolation — never changes Game.night itself.
+    this.nightT+=((this.night?1:0)-this.nightT)*.045;
+
+    if(K.jbuf>0)K.jbuf--;
+    this.player.update(this.world);
+
+    // Smooth camera follow
+    this.ox+=(this.player.x-canvas.width*.38-this.ox)*.09;
+    this.ox=Math.max(0,this.ox);
+
+    ENV.tick(this.ox);
+    Banner.tick(); // Countdown stage banner timer
+
+    if(this.enterCD>0)this.enterCD--;
+
+    // Castle unlock indicator
+    document.getElementById('castleHint').classList[this.world.done>=3?'add':'remove']('on');
+
+    // Castle entry — only triggers if gate is open AND cooldown is zero
+    if(this.enterCD===0&&this.world.castle.canEnter(this.player.x,this.player.y,this.player.W,this.player.H)){
+      this.enterCD=90;
+      // [FIX 6] Trigger the big explosion before transitioning
+      this.world.castle.triggerExplosion();
+      SFX.sfx('castle');
+      // Delay next stage by 1.2s so explosion is visible
+      this.paused=true;
+      setTimeout(()=>{this.paused=false;this.nextStage();},1200);
+      return;
+    }
+
+    // [FIX 4] Orb collision — SKIP if player's quiz cooldown is active
+    if(this.player.quizCD===0){
+      for(const orb of this.world.orbs){
+        if(orb.done)continue;
+        const base=this.world.plats.reduce((a,b)=>Math.abs(b.x-orb.x)<Math.abs(a.x-orb.x)?b:a);
+        if(this.player.x+this.player.W>orb.x-12&&this.player.x<orb.x+orb.W+12&&
+           this.player.y+this.player.H>base.y-145&&this.player.y<base.y+24){
+          this.doQuiz(orb,base.y);break;
+        }
+      }
+    }
+
+    // Coin collection
+    const add=this.world.tick(this.player.x,this.player.y,this.player.W,this.player.H);
+    if(add>0){this.coins+=add;this.popCoin();SFX.sfx('coin');this.updateUI();this.saveState();}
+
+    // Death detection
+    if(this.player.y>canvas.height+150){
+      this.playing=false;SFX.setAmb(false);
+      document.getElementById('overMsg').innerText='You fell off! Restart near your last checkpoint.';
+      document.getElementById('modalOver').style.display='flex';
+    }
+  },
+
+  render(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ENV.draw(ctx,this.ox);
+    const sc=SC[this.si]||SC[0];
+    // Platforms — Snow Bros chunky style with snow caps
+    for(const p of this.world.plats){
+      const px=p.x-this.ox;
+      const pg=ctx.createLinearGradient(px,p.y,px,p.y+p.h);
+      pg.addColorStop(0,p.mv?sc.edge:sc.top);pg.addColorStop(1,p.mv?sc.top:sc.bot);
+      ctx.fillStyle=pg;rr(ctx,px,p.y,p.w,p.h,7);
+      // Snow cap on top
+      ctx.fillStyle=sc.snow;rr(ctx,px+2,p.y,p.w-4,8,5);
+      // Specular highlight
+      ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(px+7,p.y+1,p.w-14,5);
+      // Moving platform edge glow
+      if(p.mv){ctx.strokeStyle=sc.glow;ctx.lineWidth=2;ctx.globalAlpha=.55;rr(ctx,px,p.y,p.w,p.h,7,false);ctx.globalAlpha=1;}
+      if(!p.mv){ctx.fillStyle='rgba(255,230,60,.25)';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillText('★',px+p.w/2,p.y+12);}
+    }
+    for(const orb of this.world.orbs){
+      const base=this.world.plats.reduce((a,b)=>Math.abs(b.x-orb.x)<Math.abs(a.x-orb.x)?b:a);
+      orb.draw(ctx,this.ox,base.y,sc);
+    }
+    for(const jp of this.world.jpPUs)jp.draw(ctx,this.ox);
+    for(const coin of this.world.coins)coin.draw(ctx,this.ox);
+    this.world.castle.draw(ctx,this.ox);
+    this.player.draw(ctx,this.ox);
+    // [FIX 5] Draw stage banner overlay on canvas (game world still visible)
+    Banner.draw(ctx,canvas.width,canvas.height);
+  },
+
+  drawIdle(){
+    if(!this.world)return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ENV.draw(ctx,0);
+    const sc=SC[0];
+    for(const p of this.world.plats){
+      const pg=ctx.createLinearGradient(p.x,p.y,p.x,p.y+p.h);pg.addColorStop(0,sc.top);pg.addColorStop(1,sc.bot);
+      ctx.fillStyle=pg;rr(ctx,p.x,p.y,p.w,p.h,7);ctx.fillStyle=sc.snow;rr(ctx,p.x+2,p.y,p.w-4,8,5);
+    }
+    this.world.castle.gY=canvas.height-40;this.world.castle.draw(ctx,0);
+    this.player.draw(ctx,0);
+  },
+
+  // [FIX 3] doQuiz saves & restores Game.night — quiz NEVER resets night mode
+  doQuiz(orb,baseY){
+    // Save night state before pausing (it will NOT be modified by this function)
+    const savedNight=this.night; // capture reference
+    this.paused=true;
+    SFX.setAmb(false);
+    const q=this.world.selQ[orb.idx];
+    if(this.world.attempts[orb.idx]===-1){this.paused=false;SFX.setAmb(true);return;}
+    document.getElementById('qTitle').innerText=`${this.world.title} — Challenge ${orb.idx+1} of 3`;
+    document.getElementById('qText').innerText=q.q;
+    const od=document.getElementById('qOpts');od.innerHTML='';
+    document.getElementById('qHint').innerText='';
+    document.getElementById('closeQuiz').disabled=true;
+    q.o.forEach((opt,idx)=>{
+      const btn=document.createElement('div');btn.className='opt';btn.innerText=opt;
+      btn.onclick=()=>{
+        if(this.world.attempts[orb.idx]===-1)return;
+        this.world.attempts[orb.idx]++;
+        const att=this.world.attempts[orb.idx];
+        if(idx===q.c){
+          btn.classList.add('ok');SFX.sfx('win');
+          const reward=att===1?150:att===2?75:25;
+          document.getElementById('qHint').innerHTML=`🎉 Correct! +${reward} coins earned!`;
+          document.getElementById('qHint').style.color='#1a7a3a';
+          this.world.attempts[orb.idx]=-1;orb.done=true;this.world.done++;this.correct++;
+          const pieces=Math.ceil(reward/25);
+          const rect=document.getElementById('coinHUD').getBoundingClientRect();
+          const crect=canvas.getBoundingClientRect();
+          const tx=this.ox+(rect.left-crect.left)+rect.width/2,ty=(rect.top-crect.top)+rect.height/2;
+          for(let i=0;i<pieces;i++)this.world.coins.push(new Coin(orb.x+28,baseY-80,tx,ty,Math.ceil(reward/pieces)));
+          document.getElementById('closeQuiz').disabled=false;
+          setTimeout(()=>{
+            document.getElementById('modalQuiz').style.display='none';
+            this.paused=false;
+            // [FIX 3] Restore night mode exactly as it was — never changed by quiz
+            this.night=savedNight;
+            SFX.setAmb(true);
+            this.updateUI();this.saveState();
+          },900);
+        } else {
+          btn.classList.add('no');SFX.sfx('fail');
+          document.getElementById('qHint').innerHTML=`❌ Not quite — Hint: ${q.h}`;
+          document.getElementById('qHint').style.color='#9a2020';
+          document.getElementById('closeQuiz').disabled=false;
+        }
+      };
+      od.appendChild(btn);
+    });
+    document.getElementById('closeQuiz').onclick=()=>{
+      document.getElementById('modalQuiz').style.display='none';
+      this.paused=false;
+      // [FIX 3] Also restore on close — game.night was never supposed to change
+      this.night=savedNight;
+      SFX.setAmb(true);
+    };
+    document.getElementById('modalQuiz').style.display='flex';
+  },
+
+  nextStage(){
+    SFX.setAmb(false);
+    if(this.si+1<STAGES.length){
+      this.si++;
+      this.world=new World(this.si);
+      this.player.spawnOn(this.world.plats[0]);
+      this.player.jpOn=false;document.getElementById('jetHUD').classList.remove('on');
+      this.ox=0;this.enterCD=120;
+      this.saveState();
+      // [FIX 5] Stage banner on canvas — no modal, game visible behind it
+      const s=STAGES[this.si];
+      Banner.show(`✦ STAGE ${s.n} ✦`,s.title,s.tip);
+      this.playing=true;this.paused=false;
+      SFX.setAmb(true);
+      this.updateUI();this.startLoop();
+    } else {
+      DB.clear();this.showWin();
+    }
+  },
+
+  // Resume overlay (DOM-based, brief)
+  showResumeModal(){
+    const s=STAGES[this.si];
+    document.getElementById('trIcon').innerText=s.icon||'🏰';
+    document.getElementById('trTitle').innerText=`Resuming: ${s.title}`;
+    document.getElementById('trDesc').innerText='Welcome back, Trailblazer!';
+    document.getElementById('trTip').innerText='';
+    document.getElementById('modalStage').style.display='flex';
+    setTimeout(()=>{document.getElementById('modalStage').style.display='none';SFX.setAmb(true);},1600);
+  },
+
+  showWin(){
+    this.playing = false; // <--- This stops the physics engine so you don't fall!
+    SFX.setAmb(false);
+    const acc=Math.round((this.correct/(STAGES.length*3))*100)||0;
+    DB.saveLB({n:this.player.name||'Trailblazer',c:this.coins,a:acc,d:new Date().toLocaleDateString()});
+    renderLB();
+    document.getElementById('wCoins').innerText='0';document.getElementById('wAcc').innerText='0%';
+    document.getElementById('modalWin').style.display='flex';
+    let cc=0,aa=0;
+    const iv=setInterval(()=>{cc+=Math.ceil(this.coins/30);if(cc>=this.coins)cc=this.coins;aa+=Math.ceil(acc/30);if(aa>=acc)aa=acc;document.getElementById('wCoins').innerText=cc;document.getElementById('wAcc').innerText=aa+'%';if(cc===this.coins&&aa===acc)clearInterval(iv);},30);
+    doConfetti();
+  },
+
+  updateUI(){
+    document.getElementById('coinCt').innerText=this.coins;
+    document.getElementById('sCoin').innerText=this.coins;
+    document.getElementById('sAcc').innerText=(Math.round((this.correct/(STAGES.length*3))*100)||0)+'%';
+    document.getElementById('sStg').innerText=(this.si+1)+'/'+STAGES.length;
+    document.getElementById('sChall').innerText=(this.world?this.world.done:0)+'/3';
+    document.getElementById('progBar').style.width=Math.round((this.correct/(STAGES.length*3))*100)+'%';
+    const s=STAGES[this.si];
+    document.getElementById('stageTitle').innerText=s?`Stage ${s.n} — ${s.title}`:'';
+    document.getElementById('stageDesc').innerText=s?s.desc:'';
+  },
+
+  popCoin(){
+    const el=document.getElementById('coinHUD');
+    el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
+    setTimeout(()=>el.classList.remove('pop'),350);
+  },
+
+  applySnd(){SFX.en=document.getElementById('sndToggle').checked;SFX.setAmb(this.playing&&!this.paused);}
+};
+
+/* ── SPLASH PARTICLE CONSTELLATION ──────────────────────────────── */
+// Animated particle network effect on the splash screen background
+(()=>{
+  const sp=document.getElementById('splash'),sc=document.getElementById('splashBg');
+  const x=sc.getContext('2d');
+  const rs=()=>{sc.width=window.innerWidth;sc.height=window.innerHeight;};
+  rs();window.addEventListener('resize',rs);
+  const cols=['rgba(255,255,255,.15)','rgba(243,107,37,.22)','rgba(58,160,255,.2)','rgba(255,220,0,.16)'];
+  const pts=Array.from({length:80},(_,i)=>({x:Math.random()*sc.width,y:Math.random()*sc.height,vx:(Math.random()-.5)*1.5,vy:(Math.random()-.5)*1.5,r:1.5+Math.random()*5,ph:Math.random()*Math.PI*2,vp:.02+Math.random()*.03,c:cols[i%4]}));
+  let raf;
+  const draw=()=>{
+    raf=requestAnimationFrame(draw);x.clearRect(0,0,sc.width,sc.height);
+    for(const p of pts){p.x+=p.vx;p.y+=p.vy;p.ph+=p.vp;if(p.x<-30)p.x=sc.width+30;if(p.x>sc.width+30)p.x=-30;if(p.y<-30)p.y=sc.height+30;if(p.y>sc.height+30)p.y=-30;x.globalAlpha=.3+Math.sin(p.ph)*.3;x.fillStyle=p.c;x.beginPath();x.arc(p.x,p.y,p.r*(1+Math.sin(p.ph)*.2),0,Math.PI*2);x.fill();}
+    x.lineWidth=1;
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);if(d<120){x.globalAlpha=(1-d/120)*.1;x.strokeStyle='rgba(255,255,255,.5)';x.beginPath();x.moveTo(pts[i].x,pts[i].y);x.lineTo(pts[j].x,pts[j].y);x.stroke();}}
+    x.globalAlpha=1;
+  };
+  draw();
+  document.getElementById('splashBtn').onclick=()=>{
+    cancelAnimationFrame(raf);
+    sp.style.transition='opacity .65s ease';sp.style.opacity='0';
+    setTimeout(()=>{
+      sp.style.display='none';
+      document.getElementById('gamePage').style.display='block';
+      // Init AFTER page is visible so canvas has real pixel dimensions
+      requestAnimationFrame(()=>requestAnimationFrame(()=>Game.init()));
+    },680);
+  };
+})();
+
+/* ── CONFETTI (victory screen) ───────────────────────────────────── */
+let confRaf;
+function doConfetti(){
+  const cv=document.getElementById('confettiC'),c=cv.getContext('2d');
+  cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;
+  const cls=['#0176d3','#3aa0ff','#4ade80','#ffd700','#f36b25','#c084fc','#ff6b6b'];
+  const ps=Array.from({length:120},()=>({x:cv.width/2,y:cv.height/2,vx:(Math.random()-.5)*19,vy:-(Math.random()*14+6),s:4+Math.random()*9,c:cls[Math.floor(Math.random()*cls.length)],r:Math.random()*Math.PI,vr:(Math.random()-.5)*.3}));
+  let f=0;
+  const go=()=>{c.clearRect(0,0,cv.width,cv.height);f++;let act=false;ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.4;p.r+=p.vr;if(p.y<cv.height+30)act=true;c.save();c.translate(p.x,p.y);c.rotate(p.r);c.fillStyle=p.c;c.fillRect(-p.s/2,-p.s/2,p.s,p.s);c.restore();});if(act&&f<400)confRaf=requestAnimationFrame(go);};
+  go();
+}
+
+/* ── LEADERBOARD RENDER ──────────────────────────────────────────── */
+function renderLB(){
+  const lb=DB.lbLoad(),el=document.getElementById('lb');
+  if(!lb.length){el.innerHTML='<div style="font-size:12px;color:#888">No entries yet!</div>';return;}
+  const md=['\uD83E\uDD47','\uD83E\uDD48','\uD83E\uDD49','\uD83C\uDFC5','\uD83C\uDFC5'];
+  el.innerHTML=lb.map((e,i)=>`<div class="lb-row ${i===0?'gold':''}">${md[i]} ${(e.n||'?').slice(0,12)}<span>\uD83E\uDE99${e.c} (${e.a}%)</span></div>`).join('');
+}
+
+/* ── BUTTON EVENT BINDINGS ───────────────────────────────────────── */
+document.getElementById('startBtn').onclick=(e)=>{ 
+  e.currentTarget.blur(); // Removes focus from the button
+  Game.startNew(); 
+};
+document.getElementById('pauseBtn').onclick=()=>{
+  if(!Game.playing)return;
+  Game.paused=!Game.paused;
+  document.getElementById('pauseBtn').innerText=Game.paused?'▶ Resume':'⏸ Pause';
+  SFX.setAmb(!Game.paused);
+};
+document.getElementById('restartBtn').onclick=()=>{if(Game.playing)Game.restartStage();};
+document.getElementById('retryBtn').onclick=()=>{document.getElementById('modalOver').style.display='none';Game.restartStage();};
+document.getElementById('quitBtn').onclick=()=>{document.getElementById('modalOver').style.display='none';Game.playing=false;Game.drawIdle();SFX.setAmb(false);};
+document.getElementById('doneBtn').onclick=()=>{document.getElementById('modalWin').style.display='none';if(confRaf)cancelAnimationFrame(confRaf);Game.playing=false;Game.drawIdle();};
+document.getElementById('sndToggle').onchange=()=>Game.applySnd();
+
+// [FIX 3] Night mode — ONLY toggled here, nowhere else in codebase
+document.getElementById('nightBtn').onclick=()=>{
+  Game.night=!Game.night;  // This is the SINGLE authoritative toggle
+  document.getElementById('nightBtn').innerText=Game.night?'☀️ Day Mode':'🌙 Night Mode';
+  if(!Game.playing)Game.drawIdle();
+  // nightT will smoothly lerp to match in the game tick loop
+};
+
+renderLB();
+</script>
+</body>
+</html>
